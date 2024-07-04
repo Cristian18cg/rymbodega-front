@@ -1,0 +1,132 @@
+
+
+.card_creacion_compras:hover{
+    box-shadow: 0 1px 3px 0 rgb(104, 102, 102), 0 1px 2px -1px rgb(0, 0, 0)!important;
+  }
+.imagenCrear{
+width: 350px;
+height: 350px;
+}
+@media (min-width: 980px) {
+    .card_creacion_compras{
+        min-height: 30rem;
+        width: 30rem;
+        min-width:80%;
+        box-shadow: 0 1px 3px 0 rgba(104, 102, 102, 0.63), 0 1px 2px -1px rgba(0, 0, 0, 0.767) !important;
+    }
+}
+
+.card_creacion_compras{
+    box-shadow: 0 1px 3px 0 rgba(104, 102, 102, 0.63), 0 1px 2px -1px rgba(0, 0, 0, 0.767) !important;
+}
+
+
+
+  @media (max-width: 760px) {
+    .card_creacion_compras{
+        margin-left: 5%;
+        min-height:15rem;
+        max-width:20rem;
+        box-shadow: 0 1px 3px 0 rgba(104, 102, 102, 0.87), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
+    }
+    .imagenCrear{
+        width: 100px;
+        height: 100px;
+        }
+}
+.tabla-compras .p-filter-column{
+    margin: 0;
+    background-color: #2c2c2a09!important;
+    padding: 0rem  1rem;
+}
+.tabla-compras .p-multiselect{
+    margin-bottom: 0.2rem;
+}
+.p-multiselect:hover{
+    border-color:#fde121 ;
+    box-shadow: 0 0 5px #dfc419 !important;
+}
+.p-multiselect .p-focus{
+   outline: #dfc51959!important;
+ outline-offset: 1px;
+}
+.p-focus{
+    outline: #dfc51959!important;
+}
+.p-multiselect-panel .p-highlight{
+   background-color:#fde021b7 ;
+   color: black;
+}
+.p-multiselect-panel .p-highlight .p-checkbox-box{
+    background-color:#000000 ;
+    color: aliceblue;
+    border: none;
+}
+.p-datatable .p-sortable-column.p-highlight {
+    color: #ccb20b;  
+}
+.p-datatable .p-sortable-column.p-highlight .p-sortable-column-icon{
+    color: #ccb20b;
+}
+
+.button-actualizar{
+    border: solid 1px;
+    border-color: #df9019;
+    color: #df9019;
+}
+.button-actualizar:hover{
+    background-color: #df9019;
+    border-color: #df9019;
+    color: #ffffff;
+}
+.button-actualizar:focus{
+    background-color: #cc8417;
+    border-color: #df9019;
+    color: #ffffff;
+    box-shadow: 0 0 0.8rem rgb(156, 105, 1) !important;
+}
+
+.button-actualizar:active{
+    background-color: #cc8417!important;
+    border-color: #99610d!important;
+    outline: none;
+}
+
+@media (max-width: 760px) {
+.input-filter-header{
+    min-width: 15px !important;
+    max-width: 10rem!important;
+    margin-bottom: 2px;
+}
+.titulonav{
+    font-size: 1rem;
+}
+}
+
+.navcompras .show{
+    position: relative;
+}
+.target-home-compras{
+    min-width: 100%;
+    min-height: 15rem !important;
+    box-shadow: 0 2px 3px 1px rgba(104, 102, 102, 0.384), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
+  }
+  .target-home-compras:hover{
+    box-shadow: 0 1px 3px 1.2px rgba(104, 102, 102, 0.76), 0 1px 2px -1px rgba(0, 0, 0, 0.363)!important;
+  }
+ .header-card-home-compras{
+    background-color: black;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    color: white;
+    height: 2.5rem;
+ } 
+.imagen_home_compras{
+    height:200px;
+    width: 200px;
+    transition: transform 0.3s ease-in-out;
+}
+.imagen_home_compras:hover{
+    transform: scale(1.1); 
+    cursor: pointer;
+}
