@@ -6,11 +6,11 @@ import Logistica from "../Logistica/logisitica";
 import Ventas from "../Ventas/ventas";
 import Error from "./error";
 import Compras from '../Compras/compras';
-
+import RouterPedidos from '../Gestor_pedidos/routerPedidos'
 const Home = () => {
   const { jsonlogin } = useControl();
 
-  const areaType = jsonlogin.id_area;
+  const areaType =10;
 
   const result = (areaType) => {
     switch (areaType) {
@@ -24,10 +24,14 @@ const Home = () => {
         return <Logistica jsonlogin={jsonlogin} />;
       case 45:
           return <Ventas jsonlogin={jsonlogin} />;
+      case 10:
+        return <RouterPedidos  />;
+
       default:
         return <Error />;
-    }
-  };
+    } 
+  
+  }; 
 
   return <>{result(areaType)}</>;
 };

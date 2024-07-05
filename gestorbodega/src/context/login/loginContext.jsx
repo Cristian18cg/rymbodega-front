@@ -8,8 +8,9 @@ const LoginProvider = ({ children }) => {
   const [jsonlogin, setJsonlogin] = useState({});
   const [jsonusuarios, setJsonusuarios] = useState({});
   const [usuario, setUsuario] = useState("");
-  const [token, setToken] = useState("");
   const [dataadicional, setdataadicional] = useState({});
+  const [token, setToken] = useState("");
+  const [refresh_token, setrefresh_Token] = useState("");
   const [contraseñanueva, setcontraseñanueva] = useState(null)
 
   const infoAdicional = async () => {
@@ -40,14 +41,18 @@ const LoginProvider = ({ children }) => {
           icon: "error",
           title: "Contraseña incorrecta",
         });
-      }
+      }else{
       console.log(dataLogin)
+      setLoggedIn(true);
+      setUsuario(`${dataLogin?.first_name} ${dataLogin?.last_name}`.trim() ? `${dataLogin.first_name} ${dataLogin.last_name}` : "usuario");
+      setToken(dataLogin.access) 
+      setrefresh_Token(dataLogin.refresh)  
+    }
    /*    if (infoAdicional()) {
         setTimeout(() => {
           setUsuario(dataLogin.data.nombre);
           setJsonlogin(dataLogin.data);
           setToken(response.data.access);
-          setLoggedIn(true);
           setcontraseñanueva(dataLogin.data.nuevo_usuario)
           return true;
         }, 2000);
@@ -57,7 +62,7 @@ const LoginProvider = ({ children }) => {
       if (error.message === "Network Error") {
         return Swal.fire({
           icon: "error",
-          title: "Error de respuesta del servidor ",
+          title: "Error de respuesta del servidor",
           text: error.message,
         });
       }
@@ -121,9 +126,9 @@ const LoginProvider = ({ children }) => {
         Authorization: `Bearer ${token}`,
       };
       const datos = {
-        id: id,
+       refresh: refresh_token,
       };
-      const respuesta = await clienteAxios.post("ne/logout/", datos, headers);
+      const respuesta = await clienteAxios.post("users/logout/", datos, headers);
       if (respuesta.status !== 200) {
         return Swal.fire({
           icon: "error",
