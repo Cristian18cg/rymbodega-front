@@ -42,7 +42,6 @@ const LoginProvider = ({ children }) => {
           title: "Contraseña incorrecta",
         });
       }else{
-      console.log(dataLogin)
       setLoggedIn(true);
       setUsuario(`${dataLogin?.first_name} ${dataLogin?.last_name}`.trim() ? `${dataLogin.first_name} ${dataLogin.last_name}` : "usuario");
       setToken(dataLogin.access) 

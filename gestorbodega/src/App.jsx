@@ -2,6 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Login from "./components/Login/login";
 import { LogisticaProvider } from "./context/logistica/logisticaContext";
 import { VentasProvider } from "./context/ventas/ventasContext";
+import { PedidosPovider } from "./context/pedidos/PedidosContext";
 import "primereact/resources/themes/saga-blue/theme.css"; // Tema
 import "primereact/resources/primereact.min.css"; // Estilos base
 import "primeicons/primeicons.css";
@@ -61,7 +62,9 @@ addLocale('es', {
               <CarpetaActivoPovider>
                 <CarpetaIngresoPovider>
                   <CarpetaRetiroPovider>
+                  <PedidosPovider>
                     <Login />
+                    </PedidosPovider>
                   </CarpetaRetiroPovider>
                 </CarpetaIngresoPovider>
               </CarpetaActivoPovider>

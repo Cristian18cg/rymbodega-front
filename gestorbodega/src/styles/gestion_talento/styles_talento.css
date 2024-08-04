@@ -7,8 +7,9 @@
 .button-gestion{
 cursor: pointer;
 border-radius: 5px!important;
-background-color: #fce41c!important;
+background-color: #fc1c1c40!important;
 color: black!important;
+border-color: #ff0000;
 margin: 2%;
 font-weight: bold;
 border-color: #00000013!important;
@@ -29,7 +30,7 @@ border-top-right-radius: 0px;
 .card-gestion-header{
 box-shadow: 0 0 0.1rem rgba(5, 5, 5, 0.788)!important;
 min-width: 100%;
-background-color: #fde121!important ;
+background-color: #c00101!important ;
 font-size: large;
 font-weight: bold;
 text-align: center;
@@ -147,8 +148,8 @@ background-color: rgba(39, 33, 4, 0.164);
 .form-control-gestion:focus-within select,
 .form-control-gestion:focus-visible select,
 .form-control-gestion:active select{
-box-shadow: 0 0 0.2rem rgb(156, 105, 1) !important;
-border-color: #dfc419 !important;
+box-shadow: 0 0 0.2rem rgb(156, 22, 1) !important;
+border-color: #ff0000 !important;
 background-color: #ffffff;
 }
 
@@ -215,7 +216,7 @@ background-color: #6c757d15;
 box-shadow: 0 0 5px  rgb(104, 104, 103) !important;
 }
 .p-button.p-button-outlined:hover {
-box-shadow: 0px 0px 6px #dfc419 ;
+box-shadow: 0px 0px 6px #fe2a2a ;
 }
 .p-component.p-datatable{
 border-color: #d6d6d6!important;
