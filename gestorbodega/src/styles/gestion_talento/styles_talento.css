@@ -136,14 +136,14 @@ background-color: rgba(39, 33, 4, 0.164);
 }
 
 
-.form-control-gestion:hover input,
-.form-control-gestion:focus input,
+.form-control-gestion:hover:active input,
+.form-control-gestion:focus:active  input,
 .form-control-gestion:focus textarea,
 .form-control-gestion:hover textarea,
 .form-control-gestion:focus-within textarea,
 .form-control-gestion:focus-visible input,
 .form-control-gestion:focus-within input,
-.form-control-gestion:active input
+.form-control-gestion:active input,
 .form-control-gestion:hover select,
 .form-control-gestion:focus-within select,
 .form-control-gestion:focus-visible select,
@@ -152,6 +152,7 @@ box-shadow: 0 0 0.2rem rgb(156, 22, 1) !important;
 border-color: #ff0000 !important;
 background-color: #ffffff;
 }
+
 
 .form-check-input:checked{
   background-color:#dfc419 ;
@@ -178,18 +179,17 @@ background-color:  #59c004!important;
 }  
 
 .color-icon{
-border-color: #000000;
-border-radius: 10px;
-color: #e7d912!important;
+border: none;
+color: #ffffff!important;
 max-height: 3rem;
 }
 .color-icon:hover, .color-icon:active, .color-icon:focus-visible, .color-icon:disabled, .color-icon:visited{
-  background-color: #e7d912!important;
-  color: #000000!important;
+  background-color: #940b0b!important;
+  color: white!important;
   box-shadow: none;
 }
 .color-icon:focus{
-  box-shadow: 0px 0px 10px #dfc419 !important;
+  box-shadow: 0px 0px 10px #f59292 !important;
 }
 
 
@@ -225,9 +225,7 @@ border-top-right-radius: 10px;
 border-bottom-left-radius: 10px;
 border-bottom-right-radius: 10px;
 }
-.p-datatable-header{
-color: white;
-}
+
 .p-button.p-button-outlined{
 border-color: #00000023!important;
 }
@@ -247,16 +245,19 @@ outline: #000000!important;
 align-content: center;
 height: 3rem;
 border-color: #ffffff!important;
+background-color: #b10202;
+
 }
 .p-header-datatable2 h4{
 color: white;
 margin-left: 3rem;
 }
 .p-datatable-header{
+color: white;
 max-height: 10rem;
-/* border-top-left-radius: 10px;
-border-top-right-radius: 10px; */
-background-color: #000000;
+background-color: #b10202;
+
+border-color: red;
 }
 .p-header-datatable.p-column-title{
 max-height: 60px!important;

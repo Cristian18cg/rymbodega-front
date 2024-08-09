@@ -10,7 +10,7 @@ const PedidosPovider = ({ children }) => {
   const [archivosOtros, setarchivosOtros] = useState([]);
   const [archivosObsoletos, setarchivosObsoletos] = useState([]);
   const [resCrearColaborador, setresCrearColaborador] = useState("");
-  const [ListadoProveedores, setListadoProveedores] = useState("");
+  const [ListadoEntregadores, setListadoEntregadores] = useState("");
   const [filtroGlobalCompras, setfiltroGlobalCompras] = useState("");
   const [vistatabla, setvistatabla] = useState(0);
   const [visibleNovedades, setvisibleNovedades] = useState(false);
@@ -64,16 +64,16 @@ const PedidosPovider = ({ children }) => {
     });
   };
   /* Funcion para listar los proveedores */
-  const listarProveedores = async () => {
+  const Listar_entregadores = async () => {
     try {
       const tokenDeAcceso = token;
-      const response = await clienteAxios.get("compras/lista_proveedores/", {
+      const response = await clienteAxios.get("pedidos/lista_entregadores/", {
         headers: {
           Authorization: `Bearer ${tokenDeAcceso}`,
         },
       });
 
-      setListadoProveedores(response.data);
+      setListadoEntregadores(response.data);
     } catch (error) {
       FuncionErrorToken(error);
       console.error("Error al obtener los colaboradores:", error);
@@ -135,35 +135,15 @@ const PedidosPovider = ({ children }) => {
     }
   };
 
-  const ActualizarProveedor = async (data, usuario) => {
-    const tokenDeAcceso = token;
-    data["usuario"] = usuario;
-
-    try {
-      const response = await clienteAxios.post(
-        "compras/actualizarproveedor/",
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${tokenDeAcceso}`,
-          },
-        }
-      );
-      listarProveedores();
-      showSuccess(response?.data?.message);
-    } catch (error) {
-      if (error) {
-        FuncionErrorToken(error);
-      }
-    }
-  };
+ 
   const contextValue = useMemo(() => {
     return {
       setresCrearColaborador,
       CrearEntregador,
       resCrearColaborador ,
+      ListadoEntregadores, setListadoEntregadores,Listar_entregadores,
     };
-  }, [resCrearColaborador, CrearEntregador, setresCrearColaborador]);
+  }, [Listar_entregadores,resCrearColaborador, CrearEntregador, setresCrearColaborador,ListadoEntregadores, setListadoEntregadores]);
 
   return (
     <PedidosContextControl.Provider value={contextValue}>

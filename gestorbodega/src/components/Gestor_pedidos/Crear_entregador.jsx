@@ -20,21 +20,9 @@ export const Crear_entregador = () => {
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [documento, setDocumento] = useState("");
-  const [cargo, setCargo] = useState("");
-  const [descripcion, setDescripcion] = useState("");
   const [tipoVehiculo, setTipoVehiculo] = useState("");
   const [errores, setErrores] = useState({});
   const [error, setError] = useState(false);
-  useEffect(() => {
-    if(resCrearColaborador === "Yes"){
-
-      setNombre("")
-      setDocumento("")
-      setTipoVehiculo("")
-      setApellidos("")
-      setresCrearColaborador("No")
-    }
-  }, [resCrearColaborador]);
   /* Toast de mensajes fallidos */
   const showError = (error) => {
     const Toast = Swal.mixin({
