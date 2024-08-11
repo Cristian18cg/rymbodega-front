@@ -241,7 +241,7 @@ export const Crear_entregador = () => {
                       <option value="">Seleccione...</option>
                       <option value="Carguero">Carguero</option>
                       <option value="Triciclo">Triciclo</option>
-                      <option value="Carguero">Camion</option>
+                      <option value="Camion">Camion</option>
                     </Form.Select>
                     <Form.Control.Feedback type="invalid">
                       {`Error: ${errores.tipoVehiculo}`}

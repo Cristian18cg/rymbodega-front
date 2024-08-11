@@ -11,9 +11,7 @@ import useControl_Pedidos from "../../hooks/useControl_Pedidos";
 
 export const Crear_pedido = ({ Entregadores }) => {
   const {
-    setresCrearColaborador,
-    CrearEntregador,
-    resCrearColaborador,
+    CrearPedido
   } = useControl_Pedidos();
   const [validated, setValidated] = useState(false);
   const [seleccionado, setSeleccionado] = useState(false);
@@ -25,10 +23,13 @@ export const Crear_pedido = ({ Entregadores }) => {
   const [numeroRuta, setNumeroRuta] = useState("");
   const [acompanantes, setAcompanantes] = useState([]);
   const [acompañante, setAcompañante] = useState("");
-  const [valorPedido, setValorPedido] = useState("");
-  const [numeroFactura, setNumeroFactura] = useState("");
-  const [tipoPedido, setTipoPedido] = useState("");
-  const [pedidos, setPedidos] = useState([]);
+  const [pedidos, setPedidos] = useState([
+    { valorPedido: '', numeroFactura: '', tipoPedido: 'Tienda' },
+    // Puedes agregar más pedidos según sea necesario
+  ]);
+  const [inputValues, setInputValues] = useState(
+    pedidos.map((p) => p.valorPedido)
+  );
   const [acompanado, setAcompanado] = useState(false);
   const [errores, setErrores] = useState({});
   const [errores2, setErrores2] = useState({});
@@ -86,9 +87,8 @@ export const Crear_pedido = ({ Entregadores }) => {
     }
     pedidos.forEach((pedido, index) => {
       if (!pedido.valorPedido.trim()) {
-        console.log("errores"+ index)
-        erroresTemp2[index] =
-          "El valor del pedido es requerido";
+        console.log("errores" + index);
+        erroresTemp2[index] = "El valor del pedido es requerido";
       }
     });
     setErrores2(erroresTemp2); //asignamos los mensajes al error temporal
@@ -114,7 +114,7 @@ export const Crear_pedido = ({ Entregadores }) => {
     }));
 
     try {
-      CrearEntregador({ nombre, apellidos, documento, tipoVehiculo });
+      CrearPedido({ nombre, documento, tipoVehiculo, acompañante, acompanado  },pedidosConNumeroRuta);
     } catch (error) {
       showError("Ah ocurrido un error al crear la carpeta: \n" + error);
       // Manejar errores de solicitud
@@ -143,12 +143,53 @@ export const Crear_pedido = ({ Entregadores }) => {
       setSeleccionado(false);
     }
   }, [EntregadorSelec]);
+  useEffect(() => {
+if(!acompanado){
+  setAcompañante("")
+}
+  }, [acompanado]);
   // Manejo de cambios en los pedidos
   const handlePedidoChange = (index, field, value) => {
     const newPedidos = [...pedidos];
     newPedidos[index][field] = value;
     setPedidos(newPedidos);
   };
+  //formatear valor del pedido
+  const handleValorPedidoChange = (index, value) => {
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    const validValue = numericValue.match(/^\d*\.?\d{0,2}$/);
+
+    if (validValue) {
+      const newInputValues = [...inputValues];
+      newInputValues[index] = numericValue;
+      setInputValues(newInputValues);
+
+      handlePedidoChange(index, 'valorPedido', numericValue);
+    }
+  };
+  const handleBlur = (index) => {
+    const numericValue = parseFloat(inputValues[index]);
+    if (!isNaN(numericValue)) {
+      const formattedValue = new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(numericValue);
+
+      const newInputValues = [...inputValues];
+      newInputValues[index] = formattedValue;
+      setInputValues(newInputValues);
+    }
+  };
+
+  const handleFocus = (index) => {
+    // Mostrar el valor sin formatear al entrar al campo de texto
+    const newInputValues = [...inputValues];
+    newInputValues[index] = pedidos[index].valorPedido;
+    setInputValues(newInputValues);
+  };
+
   // Agregar un nuevo pedido
   const agregarPedido = () => {
     setPedidos([
@@ -157,7 +198,7 @@ export const Crear_pedido = ({ Entregadores }) => {
         numeroRuta: numeroRuta,
         valorPedido: "",
         numeroFactura: "",
-        tipoPedido: "",
+        tipoPedido: "Tienda",
       },
     ]);
   };
@@ -353,7 +394,7 @@ export const Crear_pedido = ({ Entregadores }) => {
                           <option value="">Seleccione...</option>
                           <option value="Carguero">Carguero</option>
                           <option value="Triciclo">Triciclo</option>
-                          <option value="Carguero">Camion</option>
+                          <option value="Camion">Camion</option>
                         </Form.Select>
                         <Form.Control.Feedback type="invalid">
                           {`Error: ${errores.tipoVehiculo}`}
@@ -462,16 +503,16 @@ export const Crear_pedido = ({ Entregadores }) => {
                             label="Valor del pedido"
                           >
                             <Form.Control
+                            required
                               type="text"
-                              placeholder={`Valor del pedido`}
-                              value={pedido.valorPedido}
+                              placeholder="Valor del pedido"
+                              value={inputValues[index]}
                               onChange={(e) =>
-                                handlePedidoChange(
-                                  index,
-                                  "valorPedido",
-                                  e.target.value
-                                )
+                                handleValorPedidoChange(index, e.target.value)
                               }
+                              onBlur={() => handleBlur(index)}
+                              onFocus={() => handleFocus(index)}
+                              isInvalid={!!errores2[index]}
                             />
                             <Form.Control.Feedback type="invalid">
                               {errores2[index]}
@@ -490,7 +531,7 @@ export const Crear_pedido = ({ Entregadores }) => {
                             label="Numero de factura"
                           >
                             <Form.Control
-                              type="text"
+                              type="number"
                               placeholder="Numero de factura"
                               value={pedido.numeroFactura}
                               onChange={(e) =>
@@ -514,9 +555,10 @@ export const Crear_pedido = ({ Entregadores }) => {
                             controlId={`floatingTipoPedido-${index}`}
                             label="Tipo de pedido"
                           >
-                            <Form.Control
-                              type="text"
-                              placeholder="Tipo de pedido"
+                            <Form.Select
+                              className="form-control-gestion"
+                              required
+                              aria-label="tipo pedido"
                               value={pedido.tipoPedido}
                               onChange={(e) =>
                                 handlePedidoChange(
@@ -525,7 +567,10 @@ export const Crear_pedido = ({ Entregadores }) => {
                                   e.target.value
                                 )
                               }
-                            />
+                            >
+                              <option value="Tienda">Tienda</option>
+                              <option value="Mayorista">Mayorista</option>
+                            </Form.Select>
                           </FloatingLabel>
                         </Form.Group>
                       </Col>

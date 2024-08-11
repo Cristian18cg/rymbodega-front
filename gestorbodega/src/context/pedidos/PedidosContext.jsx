@@ -109,7 +109,46 @@ const PedidosPovider = ({ children }) => {
         showConfirmButton: false,
         timer: 2000,
       });
-      setresCrearColaborador("Yes")
+      setresCrearColaborador("Yes");
+    } catch (error) {
+      window.scrollTo(0, 0);
+
+      if (error) {
+        FuncionErrorToken(error);
+      }
+    }
+  };
+  /* Funcion de crear carpeta de ingreso */
+  const CrearPedido = async (datos, pedidos) => {
+    const tokenDeAcceso = token;
+    try {
+      const formData = new FormData();
+
+      formData.append("nombres", datos.nombre);
+      formData.append("documento", datos.documento);
+      formData.append("Vehiculo", datos.tipoVehiculo);
+      formData.append("Acompañante", datos.acompañante);
+      formData.append("Acompañado", datos.acompanado);
+      formData.append("usuario", usuario);
+      formData.append("pedidos", JSON.stringify(pedidos));  
+      const response = await clienteAxios.post(
+        "pedidos/crear_pedido/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${tokenDeAcceso}`,
+          },
+        }
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: response.data.message,
+        showConfirmButton: false,
+        timer: 2000,
+      });
+      setresCrearColaborador("Yes");
     } catch (error) {
       window.scrollTo(0, 0);
 
@@ -135,15 +174,25 @@ const PedidosPovider = ({ children }) => {
     }
   };
 
- 
   const contextValue = useMemo(() => {
     return {
       setresCrearColaborador,
       CrearEntregador,
-      resCrearColaborador ,
-      ListadoEntregadores, setListadoEntregadores,Listar_entregadores,
+      CrearPedido,
+      resCrearColaborador,
+      ListadoEntregadores,
+      setListadoEntregadores,
+      Listar_entregadores,
     };
-  }, [Listar_entregadores,resCrearColaborador, CrearEntregador, setresCrearColaborador,ListadoEntregadores, setListadoEntregadores]);
+  }, [
+    Listar_entregadores,
+    CrearPedido,
+    resCrearColaborador,
+    CrearEntregador,
+    setresCrearColaborador,
+    ListadoEntregadores,
+    setListadoEntregadores,
+  ]);
 
   return (
     <PedidosContextControl.Provider value={contextValue}>
