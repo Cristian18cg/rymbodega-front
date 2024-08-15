@@ -6,23 +6,12 @@ const PedidosContextControl = createContext();
 
 const PedidosPovider = ({ children }) => {
   const { token, usuario } = useControl();
-  const [archivosProveedor, setarchivosProveedor] = useState([]);
-  const [archivosOtros, setarchivosOtros] = useState([]);
-  const [archivosObsoletos, setarchivosObsoletos] = useState([]);
   const [resCrearColaborador, setresCrearColaborador] = useState("");
   const [ListadoEntregadores, setListadoEntregadores] = useState("");
-  const [filtroGlobalCompras, setfiltroGlobalCompras] = useState("");
-  const [vistatabla, setvistatabla] = useState(0);
-  const [visibleNovedades, setvisibleNovedades] = useState(false);
-  const [visibleCargarArchivos, setvisibleCargarArchivos] = useState(false);
-  const [visibleCargarOtros, setvisibleCargarOtros] = useState(false);
-  const [visibleActualizarArchivos, setvisibleActualizarArchivos] = useState(
-    false
-  );
-  const [comentariosActualizacion, setcomentariosActualizacion] = useState([]);
-  const [notificaciones, setnotificaciones] = useState([]);
-  const [datosGrafica, setdatosGrafica] = useState([]);
-  const [logRegistroCompras, setlogRegistroCompras] = useState([]);
+  const [EntregadoresTotal, setEntregadoresTotal] = useState("");
+  const [VisibleRuta, setVisibleRuta] = useState(false);
+  const [VisibleRutaEntregador, setVisibleRutaEntregador] = useState(false);
+
   const showError = (error) => {
     const Toast = Swal.mixin({
       toast: true,
@@ -63,8 +52,8 @@ const PedidosPovider = ({ children }) => {
       buttonsStyling: false,
     });
   };
-  /* Funcion para listar los proveedores */
-  const Listar_entregadores = async () => {
+  /* Funcion para listar las rutas por entregador del dia */
+  const Listar_entregadores_rutas = async () => {
     try {
       const tokenDeAcceso = token;
       const response = await clienteAxios.get("pedidos/lista_entregadores/", {
@@ -72,8 +61,24 @@ const PedidosPovider = ({ children }) => {
           Authorization: `Bearer ${tokenDeAcceso}`,
         },
       });
-
+      console.log(response.data)
       setListadoEntregadores(response.data);
+    } catch (error) {
+      FuncionErrorToken(error);
+      console.error("Error al obtener los colaboradores:", error);
+      // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
+    }
+  };
+   /* Funcion para listar los proveedores */
+   const Listar_entregadores = async () => {
+    try {
+      const tokenDeAcceso = token;
+      const response = await clienteAxios.get("pedidos/lista_entregadores_total/", {
+        headers: {
+          Authorization: `Bearer ${tokenDeAcceso}`,
+        },
+      });
+      setEntregadoresTotal(response.data);
     } catch (error) {
       FuncionErrorToken(error);
       console.error("Error al obtener los colaboradores:", error);
@@ -130,7 +135,7 @@ const PedidosPovider = ({ children }) => {
       formData.append("Acompañante", datos.acompañante);
       formData.append("Acompañado", datos.acompanado);
       formData.append("usuario", usuario);
-      formData.append("pedidos", JSON.stringify(pedidos));  
+      formData.append("pedidos", JSON.stringify(pedidos));
       const response = await clienteAxios.post(
         "pedidos/crear_pedido/",
         formData,
@@ -146,9 +151,11 @@ const PedidosPovider = ({ children }) => {
         icon: "success",
         title: response.data.message,
         showConfirmButton: false,
-        timer: 2000,
+        timer: 3000,
       });
-      setresCrearColaborador("Yes");
+      setVisibleRuta(false);
+      Listar_entregadores_rutas()
+
     } catch (error) {
       window.scrollTo(0, 0);
 
@@ -176,15 +183,27 @@ const PedidosPovider = ({ children }) => {
 
   const contextValue = useMemo(() => {
     return {
+      VisibleRutaEntregador, setVisibleRutaEntregador,
+      VisibleRuta,
+      setVisibleRuta,
       setresCrearColaborador,
       CrearEntregador,
       CrearPedido,
+      EntregadoresTotal,
+      setEntregadoresTotal,
+
       resCrearColaborador,
       ListadoEntregadores,
       setListadoEntregadores,
       Listar_entregadores,
+      Listar_entregadores_rutas
     };
   }, [
+    VisibleRutaEntregador, setVisibleRutaEntregador,
+    EntregadoresTotal,
+    setEntregadoresTotal,
+    VisibleRuta,
+    setVisibleRuta,
     Listar_entregadores,
     CrearPedido,
     resCrearColaborador,

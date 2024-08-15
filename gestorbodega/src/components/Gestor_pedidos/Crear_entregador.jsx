@@ -23,6 +23,14 @@ export const Crear_entregador = () => {
   const [tipoVehiculo, setTipoVehiculo] = useState("");
   const [errores, setErrores] = useState({});
   const [error, setError] = useState(false);
+  useEffect(() => {
+  if(resCrearColaborador === "Yes"){
+    setApellidos("")
+    setNombre("")
+    setDocumento("")
+    setTipoVehiculo("")
+  }
+  }, [resCrearColaborador]);
   /* Toast de mensajes fallidos */
   const showError = (error) => {
     const Toast = Swal.mixin({

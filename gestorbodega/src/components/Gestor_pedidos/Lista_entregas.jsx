@@ -1,34 +1,47 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FilterMatchMode, FilterOperator } from 'primereact/api';
+import { FilterMatchMode, FilterOperator } from "primereact/api";
 import useControl_Pedidos from "../../hooks/useControl_Pedidos";
 import { Navbar, Container, Nav } from "react-bootstrap";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
+import { IconField } from "primereact/iconfield";
+import { InputIcon } from "primereact/inputicon";
 import { debounce } from "lodash";
 import { Dialog } from "primereact/dialog";
-
-import {Crear_pedido} from './Crear_pedido'
+import { Knob } from "primereact/knob";
+import { Crear_pedido } from "./Crear_pedido";
 export const Lista_entregas = () => {
- const {ListadoEntregadores, Listar_entregadores } =useControl_Pedidos();
- const [VisibleRuta, setVisibleRuta] = useState(false);
- const [filters, setFilters] = useState({
+  const {
+    EntregadoresTotal,
+    ListadoEntregadores,
+    Listar_entregadores,
+    Listar_entregadores_rutas,
+    VisibleRuta,
+    setVisibleRuta,
+    VisibleRutaEntregador,
+    setVisibleRutaEntregador,
+  } = useControl_Pedidos();
+
+  const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  });
+  const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const [DocEntregador, setDocEntregador] = useState("");
+  const [nomEntregador, setnomEntregador] = useState("");
 
-});
-const [globalFilterValue, setGlobalFilterValue] = useState('');
-
- const delayedRequest = debounce(() => {
+  const delayedRequest = debounce(() => {
     if (ListadoEntregadores?.length === 0) {
+      Listar_entregadores_rutas();
+    }
+    if (EntregadoresTotal?.length === 0) {
       Listar_entregadores();
     }
-  }, 500)
+  }, 500);
   useEffect(() => {
     // Llama a la función asincrónica para obtener los datos
-    delayedRequest()
+    delayedRequest();
   }, []);
   const clearFilter = () => {
     /*  setFilters(null); */ // Puedes establecer el filtro como null para borrarlo
@@ -71,31 +84,27 @@ const [globalFilterValue, setGlobalFilterValue] = useState('');
     const value = e.target.value;
     let _filters = { ...filters };
 
-    _filters['global'].value = value;
+    _filters["global"].value = value;
 
     setFilters(_filters);
     setGlobalFilterValue(value);
-};
-const renderHeader = () => {
+  };
+  const renderHeader = () => {
     return (
-      <Navbar
-        expand="md"
-        variant="dark"
-        className="p-header-datatable2 "
-      >
+      <Navbar expand="md" variant="dark" className="p-header-datatable2 ">
         <Container fluid>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id=" justify-content-end">
+          <Navbar.Collapse>
             <div className="navbar-nav me-auto mb-2 mb-md-0">
               <Button
                 type="button"
                 icon="pi pi-plus"
                 label="Crear Ruta"
                 outlined
-                 className="btn btn-outline-primary color-icon " 
-                 onClick={()=>{
-                    setVisibleRuta(true)
-                 }}
+                className="btn btn-outline-primary color-icon "
+                onClick={() => {
+                  setVisibleRuta(true);
+                }}
               />
               <Button
                 type="button"
@@ -107,23 +116,27 @@ const renderHeader = () => {
               />
               <div className="flex justify-content-end">
                 <IconField iconPosition="left">
-                    <InputIcon className="pi pi-search" />
-                    <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Filtrar por nombre" />
+                  <InputIcon className="pi pi-search" />
+                  <InputText
+                    value={globalFilterValue}
+                    onChange={onGlobalFilterChange}
+                    placeholder="Filtrar por nombre"
+                  />
                 </IconField>
-            </div>
+              </div>
               <h4 className="text-center ">Lista entregas</h4>
             </div>
 
             <Nav className="mr-sm-2">
               <div className="d-flex align-items-center">
-              <Button
+                <Button
                   type="button"
                   icon="pi pi-refresh"
                   label="Recargar"
                   outlined
                   className="btn btn-outline-primary color-icon "
                   onClick={() => {
-                    Listar_entregadores();
+                    Listar_entregadores_rutas();
                   }}
                 />
                 <Button
@@ -145,51 +158,79 @@ const renderHeader = () => {
   return (
     <div className="row">
       <div className="col-md-12 ">
-          {/* Dialog de descripcion */}
-          <Dialog
-              header={`Crear ruta `}
-              visible={VisibleRuta}
-              onHide={() => {
-                setVisibleRuta(false);
-              }}
-              maximizable
-              style={{ width: "80vw" }}
-            >
-            <Crear_pedido Entregadores={ListadoEntregadores}></Crear_pedido>
-            </Dialog>
-      <DataTable
-              rows={10}
-              paginator
-              rowsPerPageOptions={[10, 20, 50]}
-              value={ListadoEntregadores}
-              header={renderHeader()}
-              filters={filters}
-              globalFilterFields={['nombres', 'documento', 'apellidos']}
-              emptyMessage="No se encontraron rutas"
-              scrollable
-              tableStyle={{ minWidth: "50rem" }}
-              removableSort
-            >
-              
-              <Column
-                sortable
-                field="documento"
-                header="Numero Documento"
-                body={(rowData) => rowData.documento}
-              />
-              <Column
-                style={{ minWidth: "15rem" }}
-                sortable
-                field="nombres"
-                header="Nombre Completo"
-                body={(rowData) => {
-                  return `${rowData.nombres} ${rowData.apellidos}`;
+        {/* Dialog de descripcion */}
+        <Dialog
+          header={`Crear ruta `}
+          visible={VisibleRuta}
+          onHide={() => {
+            setVisibleRuta(false);
+          }}
+          maximizable
+          style={{ width: "80vw" }}
+        >
+          <Crear_pedido Entregadores={EntregadoresTotal}></Crear_pedido>
+        </Dialog>
+        <Dialog
+          header={`Lista rutas ${nomEntregador} `}
+          visible={VisibleRutaEntregador}
+          onHide={() => {
+            setVisibleRutaEntregador(false);
+          }}
+          maximizable
+          style={{ width: "80vw" }}
+        ></Dialog>
+        <DataTable
+          rows={10}
+          paginator
+          rowsPerPageOptions={[10, 20, 50]}
+          value={ListadoEntregadores}
+          header={renderHeader()}
+          filters={filters}
+          globalFilterFields={["nombres", "documento", "apellidos"]}
+          emptyMessage="No se encontraron rutas"
+          scrollable
+          tableStyle={{ minWidth: "50rem" }}
+          removableSort
+        >
+          <Column
+            className="mx-3"
+            body={(rowData) => (
+              <Button
+                icon="pi pi-window-maximize"
+                className="color-icon2 "
+                onClick={() => {
+                  setVisibleRutaEntregador(true);
+                  setDocEntregador(rowData.documento)
+                  setnomEntregador(rowdata.entregador)
                 }}
               />
-              
-           </DataTable>
+            )}
+            style={{ maxWidth: "1rem" }}
+          />
 
+          <Column
+            style={{ minWidth: "15rem" }}
+            sortable
+            field="entregador"
+            header="Nombre Completo"
+          />
 
+          <Column
+            style={{ minWidth: "15rem" }}
+            field="completados"
+            header="Numero de pedidos"
+            body={(rowData) => (
+              <Knob
+                readOnly
+                value={rowData.completados}
+                valueColor="#708090"
+                rangeColor="#48d1cc"
+                max={rowData.no_completados}
+                valueTemplate={`${rowData.completados} / ${rowData.total_rutas}`}
+              />
+            )}
+          />
+        </DataTable>
       </div>
     </div>
   );

@@ -18,6 +18,21 @@ border-color: #00000013!important;
   border-color: #000000!important;
 }
 
+.button-verde{
+  cursor: pointer;
+  border-radius: 5px!important;
+  background-color: #00fd0440!important;
+  color: black!important;
+  border-color: #074a00;
+  margin: 2%;
+  font-weight: bold;
+  border-color: #00000013!important;
+  }
+  .button-verde:hover{
+    border-color: #41d45c!important;
+box-shadow: 0px 0px 6px #82f280 ;
+
+  }
 .div_100{
 min-height: 100%;
 }
@@ -193,6 +208,23 @@ max-height: 3rem;
 }
 
 
+.color-icon2{
+  border-radius: 10px;
+  border-color: #000000;
+  color: #ffffff!important;
+  max-height: 3rem;
+  background-color:#000000;
+  }
+  .color-icon2:hover, .color-icon2:active, .color-icon2:focus-visible, .color-icon2:disabled, .color-icon:visited{
+    background-color: #5c5959!important;
+    border-color: #5a5a5a;
+    color: white!important;
+    box-shadow: none;
+  }
+  .color-icon2:focus{
+    box-shadow: 0px 0px 10px #343232 !important;
+  }
+  
 .p-secondary{
 background-color: #000000de!important;
 color: white;

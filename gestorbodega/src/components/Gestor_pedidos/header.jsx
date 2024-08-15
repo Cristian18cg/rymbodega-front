@@ -290,7 +290,7 @@ const Header = () => {
                       <i className="pi pi-user-plus" /> Crear entregador
                     </NavDropdown.Item>
                     <NavDropdown.Item as={Link} to="/lista/entregas">
-                      <i className="pi pi-user-plus" /> Lista entregas
+                      <i className="pi pi-car" /> Lista entregas
                     </NavDropdown.Item>  
                     
             

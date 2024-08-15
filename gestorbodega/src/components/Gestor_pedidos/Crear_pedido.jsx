@@ -10,9 +10,7 @@ import { Button as PrimeButton } from "primereact/button";
 import useControl_Pedidos from "../../hooks/useControl_Pedidos";
 
 export const Crear_pedido = ({ Entregadores }) => {
-  const {
-    CrearPedido
-  } = useControl_Pedidos();
+  const { CrearPedido } = useControl_Pedidos();
   const [validated, setValidated] = useState(false);
   const [seleccionado, setSeleccionado] = useState(false);
   const [EntregadorSelec, setEntregadorSelec] = useState("");
@@ -24,7 +22,7 @@ export const Crear_pedido = ({ Entregadores }) => {
   const [acompanantes, setAcompanantes] = useState([]);
   const [acompañante, setAcompañante] = useState("");
   const [pedidos, setPedidos] = useState([
-    { valorPedido: '', numeroFactura: '', tipoPedido: 'Tienda' },
+    { valorPedido: "", numeroFactura: "", tipoPedido: "Tienda" },
     // Puedes agregar más pedidos según sea necesario
   ]);
   const [inputValues, setInputValues] = useState(
@@ -114,7 +112,10 @@ export const Crear_pedido = ({ Entregadores }) => {
     }));
 
     try {
-      CrearPedido({ nombre, documento, tipoVehiculo, acompañante, acompanado  },pedidosConNumeroRuta);
+      CrearPedido(
+        { nombre, documento, tipoVehiculo, acompañante, acompanado },
+        pedidosConNumeroRuta
+      );
     } catch (error) {
       showError("Ah ocurrido un error al crear la carpeta: \n" + error);
       // Manejar errores de solicitud
@@ -144,9 +145,9 @@ export const Crear_pedido = ({ Entregadores }) => {
     }
   }, [EntregadorSelec]);
   useEffect(() => {
-if(!acompanado){
-  setAcompañante("")
-}
+    if (!acompanado) {
+      setAcompañante("");
+    }
   }, [acompanado]);
   // Manejo de cambios en los pedidos
   const handlePedidoChange = (index, field, value) => {
@@ -156,7 +157,7 @@ if(!acompanado){
   };
   //formatear valor del pedido
   const handleValorPedidoChange = (index, value) => {
-    const numericValue = value.replace(/[^0-9.]/g, '');
+    const numericValue = value.replace(/[^0-9.]/g, "");
     const validValue = numericValue.match(/^\d*\.?\d{0,2}$/);
 
     if (validValue) {
@@ -164,15 +165,15 @@ if(!acompanado){
       newInputValues[index] = numericValue;
       setInputValues(newInputValues);
 
-      handlePedidoChange(index, 'valorPedido', numericValue);
+      handlePedidoChange(index, "valorPedido", numericValue);
     }
   };
   const handleBlur = (index) => {
     const numericValue = parseFloat(inputValues[index]);
     if (!isNaN(numericValue)) {
-      const formattedValue = new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
+      const formattedValue = new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(numericValue);
@@ -203,16 +204,28 @@ if(!acompanado){
     ]);
   };
 
+  const eliminarPedido = () => {
+    if (pedidos.length > 1) {
+      setPedidos(pedidos.slice(0, -1));
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Debe haber al menos un pedido en la lista.",
+      });
+    }
+  };
   useEffect(() => {
     const funcionRuta = () => {
-      if (!numeroRuta) {
+      const ultimoPedido = pedidos[pedidos.length - 1];
+      if (!numeroRuta || !ultimoPedido.valorPedido) {
         setErrorRuta(true);
       } else {
         setErrorRuta(false);
       }
     };
     funcionRuta();
-  }, [numeroRuta]);
+  }, [numeroRuta, pedidos]);
 
   return (
     <div className="d-flex justify-content-center align-items-center mt-1 ">
@@ -503,7 +516,7 @@ if(!acompanado){
                             label="Valor del pedido"
                           >
                             <Form.Control
-                            required
+                              required
                               type="text"
                               placeholder="Valor del pedido"
                               value={inputValues[index]}
@@ -579,18 +592,28 @@ if(!acompanado){
                 ))}
 
                 {/* Botón para agregar más pedidos */}
-                <Button
+                <PrimeButton
+                type="button"
+                  label=" Agregar Pedido"
                   disabled={errorRuta}
                   icon="pi pi-plus"
-                  className="mb-3 p-button p-component p-button-outlined button-gestion"
+                  className="mb-3 p-button p-component  button-verde"
                   onClick={agregarPedido}
-                >
-                  Agregar Pedido
-                </Button>
+                />
+                {pedidos.length > 1 && (
+                  <PrimeButton
+                  type="button"
+                    icon="pi pi-minus"
+                    className="mb-3 p-button p-component p-button-outlined button-gestion"
+                    onClick={eliminarPedido}
+                    label="Quitar pedido"
+                  />
+                )}
 
                 <div className="text-center mb-3">
                   <Button
                     type="submit"
+
                     className="p-button p-component p-button-outlined button-gestion"
                   >
                     Enviar
