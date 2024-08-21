@@ -8,6 +8,7 @@ const PedidosPovider = ({ children }) => {
   const { token, usuario } = useControl();
   const [resCrearColaborador, setresCrearColaborador] = useState("");
   const [ListadoEntregadores, setListadoEntregadores] = useState("");
+  const [Pedidos, setPedidos] = useState("");
   const [EntregadoresTotal, setEntregadoresTotal] = useState("");
   const [VisibleRuta, setVisibleRuta] = useState(false);
   const [VisibleRutaEntregador, setVisibleRutaEntregador] = useState(false);
@@ -61,7 +62,7 @@ const PedidosPovider = ({ children }) => {
           Authorization: `Bearer ${tokenDeAcceso}`,
         },
       });
-      console.log(response.data)
+      console.log(response.data);
       setListadoEntregadores(response.data);
     } catch (error) {
       FuncionErrorToken(error);
@@ -69,15 +70,18 @@ const PedidosPovider = ({ children }) => {
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
     }
   };
-   /* Funcion para listar los proveedores */
-   const Listar_entregadores = async () => {
+  /* Funcion para listar los proveedores */
+  const Listar_entregadores = async () => {
     try {
       const tokenDeAcceso = token;
-      const response = await clienteAxios.get("pedidos/lista_entregadores_total/", {
-        headers: {
-          Authorization: `Bearer ${tokenDeAcceso}`,
-        },
-      });
+      const response = await clienteAxios.get(
+        "pedidos/lista_entregadores_total/",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenDeAcceso}`,
+          },
+        }
+      );
       setEntregadoresTotal(response.data);
     } catch (error) {
       FuncionErrorToken(error);
@@ -154,8 +158,7 @@ const PedidosPovider = ({ children }) => {
         timer: 3000,
       });
       setVisibleRuta(false);
-      Listar_entregadores_rutas()
-
+      Listar_entregadores_rutas();
     } catch (error) {
       window.scrollTo(0, 0);
 
@@ -164,7 +167,24 @@ const PedidosPovider = ({ children }) => {
       }
     }
   };
-
+  /* Funcion para listar los pedidos por documento */
+  const Listar_pedidos = async (documento) => {
+    try {
+      const tokenDeAcceso = token;
+      const response = await clienteAxios.get(
+        `pedidos/pedidos_por_entregador/?documento=${documento}`,
+        {
+          headers: {
+            Authorization: `Bearer ${tokenDeAcceso}`,
+          },
+        }
+      );
+      setPedidos(response.data);
+    } catch (error) {
+      FuncionErrorToken(error);
+      // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
+    }
+  };
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
     if (error?.response?.status === 401) {
@@ -183,7 +203,8 @@ const PedidosPovider = ({ children }) => {
 
   const contextValue = useMemo(() => {
     return {
-      VisibleRutaEntregador, setVisibleRutaEntregador,
+      VisibleRutaEntregador,
+      setVisibleRutaEntregador,
       VisibleRuta,
       setVisibleRuta,
       setresCrearColaborador,
@@ -191,15 +212,18 @@ const PedidosPovider = ({ children }) => {
       CrearPedido,
       EntregadoresTotal,
       setEntregadoresTotal,
-
       resCrearColaborador,
       ListadoEntregadores,
       setListadoEntregadores,
       Listar_entregadores,
-      Listar_entregadores_rutas
+      Listar_entregadores_rutas,
+      Listar_pedidos,
+      Pedidos,
+    setPedidos
     };
   }, [
-    VisibleRutaEntregador, setVisibleRutaEntregador,
+    VisibleRutaEntregador,
+    setVisibleRutaEntregador,
     EntregadoresTotal,
     setEntregadoresTotal,
     VisibleRuta,
@@ -211,6 +235,9 @@ const PedidosPovider = ({ children }) => {
     setresCrearColaborador,
     ListadoEntregadores,
     setListadoEntregadores,
+    Listar_pedidos,
+    Pedidos,
+    setPedidos
   ]);
 
   return (

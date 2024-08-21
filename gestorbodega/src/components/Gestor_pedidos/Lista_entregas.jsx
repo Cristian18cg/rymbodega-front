@@ -12,6 +12,7 @@ import { debounce } from "lodash";
 import { Dialog } from "primereact/dialog";
 import { Knob } from "primereact/knob";
 import { Crear_pedido } from "./Crear_pedido";
+import {Rutas_entregador} from './Tabla_rutas/RutasEntregador'
 export const Lista_entregas = () => {
   const {
     EntregadoresTotal,
@@ -22,6 +23,7 @@ export const Lista_entregas = () => {
     setVisibleRuta,
     VisibleRutaEntregador,
     setVisibleRutaEntregador,
+    Listar_pedidos
   } = useControl_Pedidos();
 
   const [filters, setFilters] = useState({
@@ -43,10 +45,13 @@ export const Lista_entregas = () => {
     // Llama a la función asincrónica para obtener los datos
     delayedRequest();
   }, []);
+  /* limpia filtros */
   const clearFilter = () => {
     /*  setFilters(null); */ // Puedes establecer el filtro como null para borrarlo
     setGlobalFilterValue(""); // // También puedes limpiar el valor del filtro global
   };
+  /* exporta excel */
+
   const exportExcel = () => {
     import("xlsx").then((xlsx) => {
       const worksheet = xlsx.utils.json_to_sheet(ListadoEntregadores);
@@ -177,8 +182,10 @@ export const Lista_entregas = () => {
             setVisibleRutaEntregador(false);
           }}
           maximizable
-          style={{ width: "80vw" }}
-        ></Dialog>
+          style={{ width: "80vw", height: "80vh"  }}
+        >
+          <Rutas_entregador documento={DocEntregador} nombreentregador={nomEntregador}/>
+        </Dialog>
         <DataTable
           rows={10}
           paginator
@@ -194,17 +201,20 @@ export const Lista_entregas = () => {
         >
           <Column
             className="mx-3"
-            body={(rowData) => (
-              <Button
-                icon="pi pi-window-maximize"
-                className="color-icon2 "
-                onClick={() => {
-                  setVisibleRutaEntregador(true);
-                  setDocEntregador(rowData.documento)
-                  setnomEntregador(rowdata.entregador)
-                }}
-              />
-            )}
+            body={(rowData) => {
+              return ( // Asegúrate de retornar algo aquí
+                <Button
+                  icon="pi pi-window-maximize"
+                  className="color-icon2"
+                  onClick={() => {
+                    setVisibleRutaEntregador(true);
+                    setDocEntregador(rowData.documento);
+                    setnomEntregador(rowData.entregador);
+                    Listar_pedidos(rowData.documento)
+                  }}
+                />
+              );
+            }}
             style={{ maxWidth: "1rem" }}
           />
 
