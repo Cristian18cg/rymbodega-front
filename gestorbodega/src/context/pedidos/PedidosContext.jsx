@@ -89,7 +89,7 @@ const PedidosPovider = ({ children }) => {
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
     }
   };
-  /* Funcion de crear carpeta de ingreso */
+  /* Funcion de crear entregador  */
   const CrearEntregador = async (datos) => {
     const tokenDeAcceso = token;
     try {
@@ -127,7 +127,7 @@ const PedidosPovider = ({ children }) => {
       }
     }
   };
-  /* Funcion de crear carpeta de ingreso */
+  /* Funcion de crear pedido */
   const CrearPedido = async (datos, pedidos) => {
     const tokenDeAcceso = token;
     try {
@@ -185,6 +185,37 @@ const PedidosPovider = ({ children }) => {
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
     }
   };
+  /* Funcion para listar los pedidos por documento */
+  const actualizar_pedidos = async (id, field, dato, documento) => {
+
+    try {
+  
+      const tokenDeAcceso = token;
+      const response = await clienteAxios.put(
+        "pedidos/actualizar_pedido/", // La URL de la API
+        {
+          id: id,
+          campo: field,
+          dato: dato,
+          usuario: usuario,
+          documento: documento,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${tokenDeAcceso}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      Listar_entregadores_rutas();
+      console.log(response)
+      showSuccess(response.data.success);
+
+    } catch (error) {
+      FuncionErrorToken(error);
+      // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
+    }
+  };
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
     if (error?.response?.status === 401) {
@@ -219,7 +250,8 @@ const PedidosPovider = ({ children }) => {
       Listar_entregadores_rutas,
       Listar_pedidos,
       Pedidos,
-    setPedidos
+      setPedidos,
+      actualizar_pedidos
     };
   }, [
     VisibleRutaEntregador,
@@ -237,7 +269,8 @@ const PedidosPovider = ({ children }) => {
     setListadoEntregadores,
     Listar_pedidos,
     Pedidos,
-    setPedidos
+    setPedidos,
+    actualizar_pedidos,
   ]);
 
   return (

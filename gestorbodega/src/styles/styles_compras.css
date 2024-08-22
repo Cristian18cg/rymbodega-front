@@ -63,10 +63,10 @@ height: 350px;
     border: none;
 }
 .p-datatable .p-sortable-column.p-highlight {
-    color: #ccb20b;  
+    color: #fd4a4a;
 }
 .p-datatable .p-sortable-column.p-highlight .p-sortable-column-icon{
-    color: #ccb20b;
+    color: #fd4a4a;
 }
 
 .button-actualizar{

@@ -24,7 +24,6 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
 
   useEffect(() => {
     // Llama a la función asincrónica para obtener los datos
-    console.log(Pedidos);
   }, [Pedidos]);
   const clearFilter = () => {
     /*  setFilters(null); */ // Puedes establecer el filtro como null para borrarlo
@@ -94,7 +93,7 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     return true;
   };
   const rowExpansionTemplate = (data) => {
-    return <PedidosRuta data={data} />;
+    return <PedidosRuta data={data} documento={documento}/>;
   };
   const vehiculofuncion = (data) => {
     const vehiculo = data.pedidos[0].tipo_vehiculo;
@@ -137,6 +136,23 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     }).format(totalPedidos);
     return total;
   };
+  const valordevuelto = (data) => {
+    console.log(data)
+    // Filtra los pedidos que pertenecen a la ruta específica
+    const pedidosRuta = data.pedidos;
+    // Calcula el total de valores de los pedidos
+    const totalPedidos = pedidosRuta.reduce(
+      (acc, pedido) => acc + pedido.devolucion,
+      0
+    );
+    const total = new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(totalPedidos);
+    return total;
+  };
   const valorfaltante = (data) => {
     // Filtra los pedidos que pertenecen a la ruta específica
     const pedidosRuta = data.pedidos;
@@ -144,8 +160,11 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     const totalPedidos = pedidosRuta.reduce((acc, pedido) => acc + pedido.valor_pedido, 0);
     // Calcula el total de valores transferidos
     const totalTransferencia = pedidosRuta.reduce((acc, pedido) => acc + pedido.valor_transferencia, 0);
+    const totaldevolucion = pedidosRuta.reduce((acc, pedido) => acc + pedido.devolucion, 0);
+   
     // Calcula el total faltante
-    const totalFaltante = totalPedidos - totalTransferencia;
+
+    const totalFaltante = totalPedidos - totalTransferencia-totaldevolucion;
     const total = new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
@@ -205,6 +224,8 @@ const completadoFuncion = (data) => {
           />
           <Column header="Valor Ruta" body={valorruta} />
           <Column header="Valor transferencias" body={valortransferencias} />
+          <Column header="Valor devuelto" body={valordevuelto} />
+
           <Column header="Valor faltante" body={valorfaltante} />
           <Column header="Vehiculo" body={vehiculofuncion} />
           <Column header="Acompañado" body={acompañadofuncion} />
