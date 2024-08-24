@@ -7,8 +7,9 @@ const PedidosContextControl = createContext();
 const PedidosPovider = ({ children }) => {
   const { token, usuario } = useControl();
   const [resCrearColaborador, setresCrearColaborador] = useState("");
-  const [ListadoEntregadores, setListadoEntregadores] = useState("");
   const [Pedidos, setPedidos] = useState("");
+  const [ListadoEntregadores, setListadoEntregadores] = useState("");
+  const [Listahistorico, setListahistorico] = useState("");
   const [EntregadoresTotal, setEntregadoresTotal] = useState("");
   const [VisibleRuta, setVisibleRuta] = useState(false);
   const [VisibleRutaEntregador, setVisibleRutaEntregador] = useState(false);
@@ -86,6 +87,34 @@ const PedidosPovider = ({ children }) => {
     } catch (error) {
       FuncionErrorToken(error);
       console.error("Error al obtener los colaboradores:", error);
+      // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
+    }
+  };
+  const historico_entregas = async (fechaInicio = '', fechaFin = '', fecha = '') => {
+    try {
+      const tokenDeAcceso = token;
+      
+      // Construir la URL con parámetros de consulta si están disponibles
+      let url = "pedidos/historico_entregadores/";
+      const params = new URLSearchParams();
+  
+      if (fechaInicio) params.append('fecha_inicio', fechaInicio);
+      if (fechaFin) params.append('fecha_fin', fechaFin);
+      if (fecha) params.append('fecha', fecha);
+  
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+  
+      const response = await clienteAxios.get(url, {
+        headers: {
+          Authorization: `Bearer ${tokenDeAcceso}`,
+        },
+      });
+      setListahistorico(response.data);
+    } catch (error) {
+      FuncionErrorToken(error);
+      console.error("Error al obtener los entregadores:", error);
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
     }
   };
@@ -185,9 +214,8 @@ const PedidosPovider = ({ children }) => {
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
     }
   };
-  /* Funcion para listar los pedidos por documento */
+  /* Funcion para actualizar informacion del pedido */
   const actualizar_pedidos = async (id, field, dato, documento) => {
- console.log('documento', documento)
     try {
   
       const tokenDeAcceso = token;
@@ -207,6 +235,7 @@ const PedidosPovider = ({ children }) => {
           },
         }
       );
+      console.log(Pedidos)
       Listar_entregadores_rutas();
       showSuccess(response.data.success);
 
@@ -215,6 +244,58 @@ const PedidosPovider = ({ children }) => {
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
     }
   };
+  /* Funcion para completar topdos los pedidos de una ruta */
+  const completar_ruta = async (ruta, documento) => {
+       try {
+     
+         const tokenDeAcceso = token;
+         const response = await clienteAxios.put(
+           "pedidos/completar_ruta/", // La URL de la API
+           {
+            ruta:ruta,
+             usuario: usuario,
+             documento: documento,
+           },
+           {
+             headers: {
+               Authorization: `Bearer ${tokenDeAcceso}`,
+               "Content-Type": "application/json",
+             },
+           }
+         );
+         Listar_entregadores_rutas();
+         Listar_pedidos(documento)
+         showSuccess(response.data.success);
+       } catch (error) {
+         FuncionErrorToken(error);
+         // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
+       }
+     };
+     const eliminar_pedido = async (id, documento) => {
+      try {
+        const tokenDeAcceso = token;
+        const response = await clienteAxios.delete(
+          `pedidos/eliminar_pedido/`, // La URL de la API
+          {
+            headers: {
+              Authorization: `Bearer ${tokenDeAcceso}`,
+              "Content-Type": "application/json",
+            },
+            data: {
+              id: id,
+              usuario: usuario,
+              documento: documento,
+            }
+          }
+        );
+        Listar_entregadores_rutas();
+        Listar_pedidos(documento);
+        showSuccess(response.data.message); // Asegúrate de usar la clave correcta del mensaje
+      } catch (error) {
+        FuncionErrorToken(error);
+        // Maneja el error según sea necesario
+      }
+    };
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
     if (error?.response?.status === 401) {
@@ -252,6 +333,10 @@ const PedidosPovider = ({ children }) => {
       setPedidos,
       actualizar_pedidos,
       data, setData,
+      completar_ruta,
+      eliminar_pedido,
+      Listahistorico, setListahistorico
+      ,historico_entregas
     };
   }, [
     VisibleRutaEntregador,
@@ -271,6 +356,10 @@ const PedidosPovider = ({ children }) => {
     Pedidos,
     setPedidos,
     actualizar_pedidos,data, setData,
+    completar_ruta,
+    eliminar_pedido,
+    Listahistorico, setListahistorico, historico_entregas
+
   ]);
 
   return (

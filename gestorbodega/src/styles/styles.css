@@ -603,3 +603,23 @@ color: white;
   height: 200px;
   width: 200px;
 }
+.progressbarpedidos{
+  background-color: rgb(252, 219, 219);
+}
+.progressbarpedidos .p-progressbar-value{
+  color: rgb(255, 255, 255);
+  background-color: #f80909;
+}
+.progressbarpedidos .p-progressbar-label{
+  color: rgb(255, 255, 255)!important;
+}
+/* .trashb {
+  transition: transform 0.3s ease, background-color 0.3s ease; /* Suaviza el cambio de tamaño y color */
+
+
+
+.trashb:hover {
+  color: #e45252; /* Cambia el color de fondo */
+  transform: scale(1.1); /* Aumenta el tamaño del ícono al 110% */
+  cursor: pointer; /* Cambia el cursor a una mano */
+}

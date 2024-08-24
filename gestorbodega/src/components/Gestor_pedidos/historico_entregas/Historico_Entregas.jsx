@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FilterMatchMode, FilterOperator } from "primereact/api";
-import useControl_Pedidos from "../../hooks/useControl_Pedidos";
+import useControl_Pedidos from "../../../hooks/useControl_Pedidos";
 import { Navbar, Container, Nav } from "react-bootstrap";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -9,36 +9,20 @@ import { InputText } from "primereact/inputtext";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { debounce } from "lodash";
-import { Dialog } from "primereact/dialog";
-import { Knob } from "primereact/knob";
-import { Crear_pedido } from "./Crear_pedido";
-import {Rutas_entregador} from './Tabla_rutas/RutasEntregador'
-export const Lista_entregas = () => {
+import { Chart } from 'primereact/chart';
+export const Historico_Entregas = () => {
   const {
-    EntregadoresTotal,
-    ListadoEntregadores,
-    Listar_entregadores,
-    Listar_entregadores_rutas,
-    VisibleRuta,
-    setVisibleRuta,
-    VisibleRutaEntregador,
-    setVisibleRutaEntregador,
-    Listar_pedidos
-  } = useControl_Pedidos();
+    historico_entregas,
+    Listahistorico,
 
+  } = useControl_Pedidos();
+  const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
-  const [globalFilterValue, setGlobalFilterValue] = useState("");
-  const [DocEntregador, setDocEntregador] = useState("");
-  const [nomEntregador, setnomEntregador] = useState("");
-
   const delayedRequest = debounce(() => {
-    if (ListadoEntregadores?.length === 0) {
-      Listar_entregadores_rutas();
-    }
-    if (EntregadoresTotal?.length === 0) {
-      Listar_entregadores();
+    if (Listahistorico?.length === 0) {
+      historico_entregas();
     }
   }, 500);
   useEffect(() => {
@@ -54,7 +38,7 @@ export const Lista_entregas = () => {
 
   const exportExcel = () => {
     import("xlsx").then((xlsx) => {
-      const worksheet = xlsx.utils.json_to_sheet(ListadoEntregadores);
+      const worksheet = xlsx.utils.json_to_sheet(Listahistorico);
       const workbook = {
         Sheets: { data: worksheet },
         SheetNames: ["data"],
@@ -64,7 +48,7 @@ export const Lista_entregas = () => {
         type: "array",
       });
 
-      saveAsExcelFile(excelBuffer, "Entregas");
+      saveAsExcelFile(excelBuffer, "Historico entregas");
     });
   };
   /* guarda el excel */
@@ -85,6 +69,7 @@ export const Lista_entregas = () => {
       }
     });
   };
+
   const onGlobalFilterChange = (e) => {
     const value = e.target.value;
     let _filters = { ...filters };
@@ -103,16 +88,6 @@ export const Lista_entregas = () => {
             <div className="navbar-nav me-auto mb-2 mb-md-0">
               <Button
                 type="button"
-                icon="pi pi-plus"
-                label="Crear Ruta"
-                outlined
-                className="btn btn-outline-primary color-icon "
-                onClick={() => {
-                  setVisibleRuta(true);
-                }}
-              />
-              <Button
-                type="button"
                 icon="pi pi-filter-slash"
                 label="Limpiar"
                 outlined
@@ -129,7 +104,7 @@ export const Lista_entregas = () => {
                   />
                 </IconField>
               </div>
-              <h4 className="text-center mt-1 ">Lista entregas</h4>
+              <h4 className="text-center mt-1 ">Reporte entregas</h4>
             </div>
 
             <Nav className="mr-sm-2">
@@ -141,7 +116,7 @@ export const Lista_entregas = () => {
                   outlined
                   className="btn btn-outline-primary color-icon "
                   onClick={() => {
-                    Listar_entregadores_rutas();
+                    historico_entregas();
                   }}
                 />
                 <Button
@@ -160,49 +135,60 @@ export const Lista_entregas = () => {
       </Navbar>
     );
   };
-    const valorruta = (data) => {
-    // Filtra los pedidos que pertenecen a la ruta específica
-    const pedidosRuta = data.total_valor;
-    
-    const total = new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(pedidosRuta);
-    return total;
-  };
+  const [chartData, setChartData] = useState({});
+  const [chartOptions, setChartOptions] = useState({});
+
+  useEffect(() => {
+ 
+    const options = {
+        plugins: {
+            legend: {
+                labels: {
+                    usePointStyle: true
+                }
+            }
+        }
+    };
+
+    setChartOptions(options);
+}, []);
+const datafuntion = (dato1,dato2)=>{
+    const documentStyle = getComputedStyle(document.documentElement);
+    const data = {
+        labels: ['Tiendas', 'Mayoristas'],
+        datasets: [
+            {
+                data: [dato1, dato2],
+                backgroundColor: [
+                    documentStyle.getPropertyValue('--blue-500'), 
+                    documentStyle.getPropertyValue('--yellow-500'), 
+                ],
+                hoverBackgroundColor: [
+                    documentStyle.getPropertyValue('--blue-400'), 
+                    documentStyle.getPropertyValue('--yellow-400'), 
+                ]
+            }
+        ]
+    }
+    return data
+}
+
+
+  const grafica=(rowData)=>{
+    return (
+        <div className="card flex justify-content-center">
+            <Chart type="pie" data={datafuntion(rowData.tiendas,rowData.mayoristas)} options={setChartOptions} />
+        </div>
+    )
+  }
   return (
     <div className="row">
       <div className="col-md-12 ">
-        {/* Dialog de descripcion */}
-        <Dialog
-          header={`Crear ruta `}
-          visible={VisibleRuta}
-          onHide={() => {
-            setVisibleRuta(false);
-          }}
-          maximizable
-          style={{ width: "80vw" }}
-        >
-          <Crear_pedido Entregadores={EntregadoresTotal}></Crear_pedido>
-        </Dialog>
-        <Dialog
-          header={`Lista rutas ${nomEntregador} `}
-          visible={VisibleRutaEntregador}
-          onHide={() => {
-            setVisibleRutaEntregador(false);
-          }}
-          maximizable
-          style={{ width: "98vw", height: "90vh"  }}
-        >
-          <Rutas_entregador documento={DocEntregador} nombreentregador={nomEntregador}/>
-        </Dialog>
         <DataTable
           rows={10}
           paginator
           rowsPerPageOptions={[10, 20, 50]}
-          value={ListadoEntregadores}
+          value={Listahistorico}
           header={renderHeader()}
           filters={filters}
           globalFilterFields={["nombres", "documento", "apellidos"]}
@@ -212,48 +198,18 @@ export const Lista_entregas = () => {
           removableSort
         >
           <Column
-          header="Ver pedidos"
-            className="mx-3"
-            body={(rowData) => {
-              return ( // Asegúrate de retornar algo aquí
-                <Button
-                  icon="pi pi-window-maximize"
-                  className="color-icon2"
-                  onClick={() => {
-                    setVisibleRutaEntregador(true);
-                    setDocEntregador(rowData.documento);
-                    setnomEntregador(rowData.entregador);
-                    Listar_pedidos(rowData.documento)
-                  }}
-                />
-              );
-            }}
-            style={{ maxWidth: "3rem" }}
-          />
-
-          <Column
             style={{ minWidth: "10rem" }}
             sortable
             field="entregador"
             header="Nombre Completo"
           />
-           <Column header="Valor pedidos" body={valorruta} />
-
-          <Column
-            style={{ minWidth: "15rem" }}
-            field="completados"
-            header="Numero de pedidos"
-            body={(rowData) => (
-              <Knob
-                readOnly
-                value={rowData.completados}
-                valueColor="#f80909"
-                rangeColor="#ecb2b2"
-                max={rowData.total_rutas}
-                valueTemplate={`${rowData.completados} / ${rowData.total_rutas}`}
-              />
-            )}
-          />
+          <Column sortable
+           header="Total pedidos" field="total_pedidos" />
+          <Column sortable header="Total acompañado" field="acompanado" />
+          <Column sortable header="Total mayorista" field="valor_mayoristas" />
+          <Column  sortable header="Total tiendas" field="valor_tiendas" />
+          <Column  sortable header="Total valor" field="total_valor" />
+          <Column header="Pedidos" body={grafica}  />
         </DataTable>
       </div>
     </div>

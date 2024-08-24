@@ -8,15 +8,25 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
-import { debounce } from "lodash";
 import { Dialog } from "primereact/dialog";
 import { Knob } from "primereact/knob";
-import { ProgressBar } from 'primereact/progressbar';
+import { ProgressBar } from "primereact/progressbar";
+import { InputSwitch } from "primereact/inputswitch";
+import { Tag } from "primereact/tag";
 
 import { PedidosRuta } from "./PedidosRuta";
 export const Rutas_entregador = ({ documento, nombreentregador }) => {
-  const { Pedidos, Listar_pedidos,data,setData} = useControl_Pedidos();
+  const {
+    Pedidos,
+    Listar_pedidos,
+    data,
+    setData,
+    setPedidos,
+    actualizar_pedidos,
+    completar_ruta,
+  } = useControl_Pedidos();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const [rutaCompleta, setrutaCompleta] = useState(false);
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
@@ -93,14 +103,48 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     return true;
   };
   const rowExpansionTemplate = (dato) => {
-    setData(dato)
-    return <PedidosRuta data={dato} documento={documento}/>;
+    setData(dato);
+    return <PedidosRuta data={dato} documento={documento} />;
   };
   const vehiculofuncion = (data) => {
     const vehiculo = data.pedidos[0].tipo_vehiculo;
     return vehiculo;
   };
 
+  const getSeverityAcompanado = (value) => {
+    console.log(value)
+    switch (value) {
+      case true:
+        return "success";
+
+      case false:
+        return "danger";
+      default:
+        return null;
+    }
+  };
+  const getvalueAcompanado = (value) => {
+    console.log(value)
+    switch (value) {
+      case true:
+        return "Si";
+
+      case false:
+        return "No";
+      default:
+        return null;
+    }
+  };
+  const statusBodyAcompanado = (rowData) => {
+    console.log(rowData.pedidos[0].acompanado);
+    return (
+      <Tag
+      className="mx-4"
+        value={getvalueAcompanado(rowData.pedidos[0].acompanado)}
+        severity={getSeverityAcompanado(rowData.pedidos[0].acompanado)}
+      ></Tag>
+    );
+  };
   const acompañadofuncion = (data) => {
     const acompañado = data.pedidos[0].acompanado;
     return acompañado;
@@ -138,7 +182,6 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     return total;
   };
   const valordevuelto = (data) => {
-    console.log(data)
     // Filtra los pedidos que pertenecen a la ruta específica
     const pedidosRuta = data.pedidos;
     // Calcula el total de valores de los pedidos
@@ -158,14 +201,23 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     // Filtra los pedidos que pertenecen a la ruta específica
     const pedidosRuta = data.pedidos;
     // Calcula el total de valores de los pedidos
-    const totalPedidos = pedidosRuta.reduce((acc, pedido) => acc + pedido.valor_pedido, 0);
+    const totalPedidos = pedidosRuta.reduce(
+      (acc, pedido) => acc + pedido.valor_pedido,
+      0
+    );
     // Calcula el total de valores transferidos
-    const totalTransferencia = pedidosRuta.reduce((acc, pedido) => acc + pedido.valor_transferencia, 0);
-    const totaldevolucion = pedidosRuta.reduce((acc, pedido) => acc + pedido.devolucion, 0);
-   
+    const totalTransferencia = pedidosRuta.reduce(
+      (acc, pedido) => acc + pedido.valor_transferencia,
+      0
+    );
+    const totaldevolucion = pedidosRuta.reduce(
+      (acc, pedido) => acc + pedido.devolucion,
+      0
+    );
+
     // Calcula el total faltante
 
-    const totalFaltante = totalPedidos - totalTransferencia-totaldevolucion;
+    const totalFaltante = totalPedidos - totalTransferencia - totaldevolucion;
     const total = new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
@@ -175,27 +227,49 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     return total;
   };
 
-
   const completadoFuncion = (data) => {
     // Filtra los pedidos para contar los completados y los totales
     const totalPedidos = data.pedidos.length;
-    const pedidosCompletados = data.pedidos.filter(pedido => pedido.completado).length;
-    
+    const pedidosCompletados = data.pedidos.filter(
+      (pedido) => pedido.completado
+    ).length;
+
     // Calcula el porcentaje de completado y redondea a dos decimales
-    const porcentajeCompletado = totalPedidos > 0 ? (pedidosCompletados / totalPedidos) * 100 : 0;
-    const porcentajeRedondeado = Math.round(porcentajeCompletado); // Redondea al entero más cercano
-  
+    const porcentajeCompletado =
+      totalPedidos > 0 ? (pedidosCompletados / totalPedidos) * 100 : 0;
+    const porcentajeRedondeado = Math.round(porcentajeCompletado);
+
     return (
-      <ProgressBar value={porcentajeRedondeado} />
+      <ProgressBar
+        value={porcentajeRedondeado}
+        className="progressbarpedidos"
+      />
     );
   };
-  
+
+  const completarRuta = (Data) => {
+    completar_ruta(Data.numero_ruta, documento);
+  };
+  const completadoSwitch = (rowData) => {
+    const todosCompletados = rowData.pedidos.every(
+      (pedido) => pedido.completado
+    );
+
+    return (
+      <InputSwitch
+        className="mx-4"
+        checked={todosCompletados}
+        onChange={(e) => completarRuta(rowData)}
+        disabled={todosCompletados}
+      />
+    );
+  };
   return (
     <div className="row">
       <div className="col-md-12 ">
         <DataTable
-        sortField="numero_ruta"
-         sortOrder={-1}
+          sortField="numero_ruta"
+          sortOrder={-1}
           rows={10}
           paginator
           rowsPerPageOptions={[10, 20, 50]}
@@ -212,7 +286,12 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
           rowExpansionTemplate={rowExpansionTemplate}
         >
           <Column expander={allowExpansion} style={{ width: "5rem" }} />
-          <Column sortable field="numero_ruta" header="# Ruta"style={{ maxWidth: "5.1rem" }} />
+          <Column
+            sortable
+            field="numero_ruta"
+            header="# Ruta"
+            style={{ maxWidth: "5.1rem" }}
+          />
           <Column
             field="numero_ruta"
             header="# Pedidos "
@@ -221,13 +300,13 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
             }}
           />
           <Column header="Valor Ruta" body={valorruta} />
-          <Column header="Valor transferencias" body={valortransferencias} />
-          <Column header="Valor devuelto" body={valordevuelto} />
-
-          <Column header="Valor faltante" body={valorfaltante} />
+          <Column header="$ Transferencias" body={valortransferencias} />
+          <Column header="$ devuelto" body={valordevuelto} />
+          <Column header="$ faltante" body={valorfaltante} />
           <Column header="Vehiculo" body={vehiculofuncion} />
-          <Column header="Acompañado" body={acompañadofuncion} />
+          <Column header="Acompañado" body={statusBodyAcompanado} />
           <Column header="Completado" body={completadoFuncion} />
+          <Column header="Completar ruta" body={completadoSwitch} />
         </DataTable>
       </div>
     </div>

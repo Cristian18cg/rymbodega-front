@@ -1,19 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
-import { FilterMatchMode, FilterOperator } from "primereact/api";
+import React, { useState, useEffect } from "react";
 import useControl_Pedidos from "../../../hooks/useControl_Pedidos";
-import { Navbar, Container, Nav } from "react-bootstrap";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
-import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
 import { Tag } from "primereact/tag";
-import { InputSwitch } from 'primereact/inputswitch';
-import { DataViewLayoutOptions } from "primereact/dataview";
+import { InputSwitch } from "primereact/inputswitch";
+import { Button } from "react-bootstrap";
 export const PedidosRuta = ({ data, documento }) => {
-  const { actualizar_pedidos,Listar_pedidos } = useControl_Pedidos();
-  const [id,setID] =useState("")
-  const [completado,setCompletado] =useState("")
+  const { actualizar_pedidos, eliminar_pedido, Listar_pedidos, Pedidos,setPedidos } = useControl_Pedidos();
+  const [id, setID] = useState("");
+  const [completado, setCompletado] = useState("");
   const getSeverityTienda = (value) => {
     switch (value) {
       case "Tienda":
@@ -106,8 +103,6 @@ export const PedidosRuta = ({ data, documento }) => {
   };
 
   const valorfaltante = (data) => {
-    console.log(data);
-
     // Asegúrate de que los valores sean numéricos
     const valorPedido = Number(data.valor_pedido) || 0;
     const valorTransferencia = Number(data.valor_transferencia) || 0;
@@ -127,22 +122,45 @@ export const PedidosRuta = ({ data, documento }) => {
     return total;
   };
 
-  const completarpedido =(dato, ud)=>{
-   console.log('dato',dato)
-    Listar_pedidos(documento)
-   const doc = documento
-   console.log('doc',doc)
-   console.log('ud',ud)
-    actualizar_pedidos(ud,'completado', dato, doc);
+  const completarpedido = (dato, ud) => {
+    const doc = documento;
+    // Verifica si `Pedidos` es un array, y si no lo es, lo inicializamos como un array vacío
+  if (!Array.isArray(Pedidos)) {
+    console.error('Pedidos no está definido como un array. Inicializando como array vacío.');
+    setPedidos([]);
+    return;
+  } // Actualiza el campo 'completado' del pedido específico
+  const updatedPedidos = Pedidos.map((ruta) => {
+    // Verifica que la propiedad `pedidos` exista y sea un array
+    if (!ruta.pedidos || !Array.isArray(ruta.pedidos)) {
+      console.error('La propiedad pedidos no está definida o no es un array en la ruta:', ruta);
+      return ruta;
+    }
 
-  }
+    // Mapea sobre los pedidos para encontrar y actualizar el que tiene el id igual a `ud`
+    const nuevosPedidos = ruta.pedidos.map((pedido) => {
+      if (pedido.id === ud) {
+        return { ...pedido, completado: dato };
+      }
+      return pedido;
+    });
+
+    // Retorna la ruta con los pedidos actualizados
+    return { ...ruta, pedidos: nuevosPedidos };
+  });
+
+  // Actualiza el estado con los pedidos actualizados
+  setPedidos(updatedPedidos);
+    actualizar_pedidos(ud, "completado", dato, doc);
+  };
   const completadoSwitch = (rowData) => {
-
-   
     return (
-      <InputSwitch  checked={rowData.completado}  onChange={(e) => completarpedido(e.value, rowData.id)}/>
-    )
-  }
+      <InputSwitch
+        checked={rowData.completado}
+        onChange={(e) => completarpedido(e.value, rowData.id)}
+      />
+    );
+  };
   return (
     <div className="p-3">
       <DataTable value={data.pedidos} editMode="cell">
@@ -211,7 +229,10 @@ export const PedidosRuta = ({ data, documento }) => {
           sortable
           body={statusBodyTipo}
         ></Column>
-
+        <Column body={(data)=>{
+          return <a className="pi pi-trash trashb" style={{ color: 'red' }} onClick={()=> eliminar_pedido(data.id,documento)}></a>
+        }}/>
+        
       </DataTable>
     </div>
   );
