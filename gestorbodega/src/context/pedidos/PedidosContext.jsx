@@ -12,6 +12,7 @@ const PedidosPovider = ({ children }) => {
   const [EntregadoresTotal, setEntregadoresTotal] = useState("");
   const [VisibleRuta, setVisibleRuta] = useState(false);
   const [VisibleRutaEntregador, setVisibleRutaEntregador] = useState(false);
+  const [data, setData] = useState(false);
 
   const showError = (error) => {
     const Toast = Swal.mixin({
@@ -62,7 +63,6 @@ const PedidosPovider = ({ children }) => {
           Authorization: `Bearer ${tokenDeAcceso}`,
         },
       });
-      console.log(response.data);
       setListadoEntregadores(response.data);
     } catch (error) {
       FuncionErrorToken(error);
@@ -187,7 +187,7 @@ const PedidosPovider = ({ children }) => {
   };
   /* Funcion para listar los pedidos por documento */
   const actualizar_pedidos = async (id, field, dato, documento) => {
-
+ console.log('documento', documento)
     try {
   
       const tokenDeAcceso = token;
@@ -208,7 +208,6 @@ const PedidosPovider = ({ children }) => {
         }
       );
       Listar_entregadores_rutas();
-      console.log(response)
       showSuccess(response.data.success);
 
     } catch (error) {
@@ -251,7 +250,8 @@ const PedidosPovider = ({ children }) => {
       Listar_pedidos,
       Pedidos,
       setPedidos,
-      actualizar_pedidos
+      actualizar_pedidos,
+      data, setData,
     };
   }, [
     VisibleRutaEntregador,
@@ -270,7 +270,7 @@ const PedidosPovider = ({ children }) => {
     Listar_pedidos,
     Pedidos,
     setPedidos,
-    actualizar_pedidos,
+    actualizar_pedidos,data, setData,
   ]);
 
   return (

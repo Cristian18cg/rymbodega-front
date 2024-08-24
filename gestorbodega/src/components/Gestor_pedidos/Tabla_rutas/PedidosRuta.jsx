@@ -8,8 +8,12 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
 import { Tag } from "primereact/tag";
+import { InputSwitch } from 'primereact/inputswitch';
+import { DataViewLayoutOptions } from "primereact/dataview";
 export const PedidosRuta = ({ data, documento }) => {
-  const { actualizar_pedidos } = useControl_Pedidos();
+  const { actualizar_pedidos,Listar_pedidos } = useControl_Pedidos();
+  const [id,setID] =useState("")
+  const [completado,setCompletado] =useState("")
   const getSeverityTienda = (value) => {
     switch (value) {
       case "Tienda":
@@ -46,7 +50,7 @@ export const PedidosRuta = ({ data, documento }) => {
 
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e;
-   
+
     switch (field) {
       case "valor_pedido":
         if (isPositiveInteger(newValue)) {
@@ -74,7 +78,7 @@ export const PedidosRuta = ({ data, documento }) => {
   };
 
   const cellEditor = (options) => {
-    if (options.field === "numero_factura" ) return  textEditor(options);
+    if (options.field === "numero_factura") return textEditor(options);
     else return priceEditor(options);
   };
   const textEditor = (options) => {
@@ -103,15 +107,15 @@ export const PedidosRuta = ({ data, documento }) => {
 
   const valorfaltante = (data) => {
     console.log(data);
-  
+
     // Asegúrate de que los valores sean numéricos
     const valorPedido = Number(data.valor_pedido) || 0;
     const valorTransferencia = Number(data.valor_transferencia) || 0;
     const devolucion = Number(data.devolucion) || 0;
-  
+
     // Calcula el total faltante
     const totalFaltante = valorPedido - valorTransferencia - devolucion;
-  
+
     // Formatea el resultado a la moneda COP
     const total = new Intl.NumberFormat("es-CO", {
       style: "currency",
@@ -119,10 +123,26 @@ export const PedidosRuta = ({ data, documento }) => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(totalFaltante);
-  
+
     return total;
   };
 
+  const completarpedido =(dato, ud)=>{
+   console.log('dato',dato)
+    Listar_pedidos(documento)
+   const doc = documento
+   console.log('doc',doc)
+   console.log('ud',ud)
+    actualizar_pedidos(ud,'completado', dato, doc);
+
+  }
+  const completadoSwitch = (rowData) => {
+
+   
+    return (
+      <InputSwitch  checked={rowData.completado}  onChange={(e) => completarpedido(e.value, rowData.id)}/>
+    )
+  }
   return (
     <div className="p-3">
       <DataTable value={data.pedidos} editMode="cell">
@@ -182,13 +202,16 @@ export const PedidosRuta = ({ data, documento }) => {
           onCellEditComplete={onCellEditComplete}
         ></Column>
 
-<Column header="Valor faltante" body={valorfaltante} />
+        <Column header="Valor faltante" body={valorfaltante} />
+        <Column header="Completados" body={completadoSwitch} />
+
         <Column
           field="tipo_pedido"
           header="Tipo"
           sortable
           body={statusBodyTipo}
         ></Column>
+
       </DataTable>
     </div>
   );

@@ -15,7 +15,7 @@ import { ProgressBar } from 'primereact/progressbar';
 
 import { PedidosRuta } from "./PedidosRuta";
 export const Rutas_entregador = ({ documento, nombreentregador }) => {
-  const { Pedidos, Listar_pedidos } = useControl_Pedidos();
+  const { Pedidos, Listar_pedidos,data,setData} = useControl_Pedidos();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -92,8 +92,9 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
   const allowExpansion = () => {
     return true;
   };
-  const rowExpansionTemplate = (data) => {
-    return <PedidosRuta data={data} documento={documento}/>;
+  const rowExpansionTemplate = (dato) => {
+    setData(dato)
+    return <PedidosRuta data={dato} documento={documento}/>;
   };
   const vehiculofuncion = (data) => {
     const vehiculo = data.pedidos[0].tipo_vehiculo;
@@ -174,24 +175,21 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     return total;
   };
 
-  const valueTemplate = (value) => {
-    return (
-        <React.Fragment>
-            {value}/<b>100</b>
-        </React.Fragment>
-    );
-};
-const completadoFuncion = (data) => {
-  // Filtra los pedidos para contar los completados y los totales
-  const totalPedidos = data.pedidos.length;
-  const pedidosCompletados = data.pedidos.filter(pedido => pedido.completado).length;
+
+  const completadoFuncion = (data) => {
+    // Filtra los pedidos para contar los completados y los totales
+    const totalPedidos = data.pedidos.length;
+    const pedidosCompletados = data.pedidos.filter(pedido => pedido.completado).length;
+    
+    // Calcula el porcentaje de completado y redondea a dos decimales
+    const porcentajeCompletado = totalPedidos > 0 ? (pedidosCompletados / totalPedidos) * 100 : 0;
+    const porcentajeRedondeado = Math.round(porcentajeCompletado); // Redondea al entero más cercano
   
-  // Calcula el porcentaje de completado
-  const porcentajeCompletado = totalPedidos > 0 ? (pedidosCompletados / totalPedidos) * 100 : 0;
-  return (
-      <ProgressBar value={porcentajeCompletado} displayValueTemplate={valueTemplate} />
-  );
-};
+    return (
+      <ProgressBar value={porcentajeRedondeado} />
+    );
+  };
+  
   return (
     <div className="row">
       <div className="col-md-12 ">
