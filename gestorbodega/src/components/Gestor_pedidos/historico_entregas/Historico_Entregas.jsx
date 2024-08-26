@@ -177,7 +177,7 @@ const datafuntion = (dato1,dato2)=>{
   const grafica=(rowData)=>{
     return (
         <div className="card flex justify-content-center">
-            <Chart type="pie" data={datafuntion(rowData.tiendas,rowData.mayoristas)} options={setChartOptions} />
+            <Chart type="pie" data={datafuntion(rowData.tiendas,rowData.mayoristas)} options={setChartOptions}    style={{ maxWidth: "15rem" }}/>
         </div>
     )
   }
@@ -205,10 +205,31 @@ const datafuntion = (dato1,dato2)=>{
           />
           <Column sortable
            header="Total pedidos" field="total_pedidos" />
-          <Column sortable header="Total acompañado" field="acompanado" />
-          <Column sortable header="Total mayorista" field="valor_mayoristas" />
-          <Column  sortable header="Total tiendas" field="valor_tiendas" />
-          <Column  sortable header="Total valor" field="total_valor" />
+          <Column sortable header="Total acompañado" field="acompanado"  />
+          <Column sortable header="Total mayorista" field="valor_mayoristas" body={(rowData) =>
+            new Intl.NumberFormat("es-CO", {
+              style: "currency",
+              currency: "COP",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(rowData.valor_mayoristas)
+          }  />
+          <Column  sortable header="Total tiendas" field="valor_tiendas" body={(rowData) =>
+            new Intl.NumberFormat("es-CO", {
+              style: "currency",
+              currency: "COP",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(rowData.valor_tiendas)
+          }  />
+          <Column  sortable header="Total valor" field="total_valor"    body={(rowData) =>
+            new Intl.NumberFormat("es-CO", {
+              style: "currency",
+              currency: "COP",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(rowData.total_valor)
+          } />
           <Column header="Pedidos" body={grafica}  />
         </DataTable>
       </div>
