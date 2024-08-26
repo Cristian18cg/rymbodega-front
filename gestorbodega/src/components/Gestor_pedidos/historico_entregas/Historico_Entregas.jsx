@@ -176,9 +176,7 @@ const datafuntion = (dato1,dato2)=>{
 
   const grafica=(rowData)=>{
     return (
-        <div className="card flex justify-content-center">
-            <Chart type="pie" data={datafuntion(rowData.tiendas,rowData.mayoristas)} options={setChartOptions}    style={{ maxWidth: "15rem" }}/>
-        </div>
+            <Chart type="pie" data={datafuntion(rowData.tiendas,rowData.mayoristas)} options={setChartOptions}    style={{ maxWidth: "10rem" }}/>
     )
   }
   return (

@@ -57,6 +57,8 @@ export const PedidosRuta = ({ data, documento }) => {
         break;
       case "valor_transferencia":
         if (isPositiveInteger(newValue)) {
+       
+
           actualizar_pedidos(rowData.id, field, newValue, documento);
           rowData[field] = newValue;
         } else event.preventDefault();
