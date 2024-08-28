@@ -12,6 +12,7 @@ const PedidosPovider = ({ children }) => {
   const [Listahistorico, setListahistorico] = useState("");
   const [EntregadoresTotal, setEntregadoresTotal] = useState("");
   const [VisibleRuta, setVisibleRuta] = useState(false);
+  const [Visibleagregar, setVisibleagregar] = useState(false);
   const [VisibleRutaEntregador, setVisibleRutaEntregador] = useState(false);
   const [data, setData] = useState(false);
 
@@ -90,22 +91,26 @@ const PedidosPovider = ({ children }) => {
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
     }
   };
-  const historico_entregas = async (fechaInicio = '', fechaFin = '', fecha = '') => {
+  const historico_entregas = async (
+    fechaInicio = "",
+    fechaFin = "",
+    fecha = ""
+  ) => {
     try {
       const tokenDeAcceso = token;
-      
+
       // Construir la URL con parámetros de consulta si están disponibles
       let url = "pedidos/historico_entregadores/";
       const params = new URLSearchParams();
-  
-      if (fechaInicio) params.append('fecha_inicio', fechaInicio);
-      if (fechaFin) params.append('fecha_fin', fechaFin);
-      if (fecha) params.append('fecha', fecha);
-  
+
+      if (fechaInicio) params.append("fecha_inicio", fechaInicio);
+      if (fechaFin) params.append("fecha_fin", fechaFin);
+      if (fecha) params.append("fecha", fecha);
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
-  
+
       const response = await clienteAxios.get(url, {
         headers: {
           Authorization: `Bearer ${tokenDeAcceso}`,
@@ -148,6 +153,7 @@ const PedidosPovider = ({ children }) => {
         timer: 2000,
       });
       setresCrearColaborador("Yes");
+      Listar_entregadores()
     } catch (error) {
       window.scrollTo(0, 0);
 
@@ -157,7 +163,7 @@ const PedidosPovider = ({ children }) => {
     }
   };
   /* Funcion de crear pedido */
-  const CrearPedido = async (datos, pedidos) => {
+  const CrearPedido = async (datos, pedidos, agregar) => {
     const tokenDeAcceso = token;
     try {
       const formData = new FormData();
@@ -167,6 +173,7 @@ const PedidosPovider = ({ children }) => {
       formData.append("Vehiculo", datos.tipoVehiculo);
       formData.append("Acompañante", datos.acompañante);
       formData.append("Acompañado", datos.acompanado);
+      formData.append("agregar", agregar);
       formData.append("usuario", usuario);
       formData.append("pedidos", JSON.stringify(pedidos));
       const response = await clienteAxios.post(
@@ -188,6 +195,10 @@ const PedidosPovider = ({ children }) => {
       });
       setVisibleRuta(false);
       Listar_entregadores_rutas();
+      if(agregar){
+        Listar_pedidos(datos.documento)
+        setVisibleagregar(false)
+      }
     } catch (error) {
       window.scrollTo(0, 0);
 
@@ -217,7 +228,6 @@ const PedidosPovider = ({ children }) => {
   /* Funcion para actualizar informacion del pedido */
   const actualizar_pedidos = async (id, field, dato, documento) => {
     try {
-  
       const tokenDeAcceso = token;
       const response = await clienteAxios.put(
         "pedidos/actualizar_pedido/", // La URL de la API
@@ -235,10 +245,9 @@ const PedidosPovider = ({ children }) => {
           },
         }
       );
-      console.log(Pedidos)
+      console.log(Pedidos);
       Listar_entregadores_rutas();
       showSuccess(response.data.success);
-
     } catch (error) {
       FuncionErrorToken(error);
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
@@ -246,56 +255,55 @@ const PedidosPovider = ({ children }) => {
   };
   /* Funcion para completar topdos los pedidos de una ruta */
   const completar_ruta = async (ruta, documento) => {
-       try {
-     
-         const tokenDeAcceso = token;
-         const response = await clienteAxios.put(
-           "pedidos/completar_ruta/", // La URL de la API
-           {
-            ruta:ruta,
-             usuario: usuario,
-             documento: documento,
-           },
-           {
-             headers: {
-               Authorization: `Bearer ${tokenDeAcceso}`,
-               "Content-Type": "application/json",
-             },
-           }
-         );
-         Listar_entregadores_rutas();
-         Listar_pedidos(documento)
-         showSuccess(response.data.success);
-       } catch (error) {
-         FuncionErrorToken(error);
-         // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
-       }
-     };
-     const eliminar_pedido = async (id, documento) => {
-      try {
-        const tokenDeAcceso = token;
-        const response = await clienteAxios.delete(
-          `pedidos/eliminar_pedido/`, // La URL de la API
-          {
-            headers: {
-              Authorization: `Bearer ${tokenDeAcceso}`,
-              "Content-Type": "application/json",
-            },
-            data: {
-              id: id,
-              usuario: usuario,
-              documento: documento,
-            }
-          }
-        );
-        Listar_entregadores_rutas();
-        Listar_pedidos(documento);
-        showSuccess(response.data.message); // Asegúrate de usar la clave correcta del mensaje
-      } catch (error) {
-        FuncionErrorToken(error);
-        // Maneja el error según sea necesario
-      }
-    };
+    try {
+      const tokenDeAcceso = token;
+      const response = await clienteAxios.put(
+        "pedidos/completar_ruta/", // La URL de la API
+        {
+          ruta: ruta,
+          usuario: usuario,
+          documento: documento,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${tokenDeAcceso}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      Listar_entregadores_rutas();
+      Listar_pedidos(documento);
+      showSuccess(response.data.success);
+    } catch (error) {
+      FuncionErrorToken(error);
+      // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
+    }
+  };
+  const eliminar_pedido = async (id, documento) => {
+    try {
+      const tokenDeAcceso = token;
+      const response = await clienteAxios.delete(
+        `pedidos/eliminar_pedido/`, // La URL de la API
+        {
+          headers: {
+            Authorization: `Bearer ${tokenDeAcceso}`,
+            "Content-Type": "application/json",
+          },
+          data: {
+            id: id,
+            usuario: usuario,
+            documento: documento,
+          },
+        }
+      );
+      Listar_entregadores_rutas();
+      Listar_pedidos(documento);
+      showSuccess(response.data.message); // Asegúrate de usar la clave correcta del mensaje
+    } catch (error) {
+      FuncionErrorToken(error);
+      // Maneja el error según sea necesario
+    }
+  };
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
     if (error?.response?.status === 401) {
@@ -332,11 +340,14 @@ const PedidosPovider = ({ children }) => {
       Pedidos,
       setPedidos,
       actualizar_pedidos,
-      data, setData,
+      data,
+      setData,
       completar_ruta,
       eliminar_pedido,
-      Listahistorico, setListahistorico
-      ,historico_entregas
+      Listahistorico,
+      setListahistorico,
+      historico_entregas,
+      Visibleagregar, setVisibleagregar
     };
   }, [
     VisibleRutaEntregador,
@@ -355,11 +366,16 @@ const PedidosPovider = ({ children }) => {
     Listar_pedidos,
     Pedidos,
     setPedidos,
-    actualizar_pedidos,data, setData,
+    actualizar_pedidos,
+    data,
+    setData,
     completar_ruta,
     eliminar_pedido,
-    Listahistorico, setListahistorico, historico_entregas
-
+    Listahistorico,
+    setListahistorico,
+    historico_entregas,
+    Visibleagregar,
+    setVisibleagregar,
   ]);
 
   return (

@@ -9,7 +9,12 @@ import FloatingLabel from "react-bootstrap/FloatingLabel";
 import { Button as PrimeButton } from "primereact/button";
 import useControl_Pedidos from "../../hooks/useControl_Pedidos";
 
-export const Crear_pedido = ({ Entregadores }) => {
+export const Crear_pedido = ({
+  Entregadores,
+  agregar,
+  docentregador,
+  numruta,
+}) => {
   const { CrearPedido } = useControl_Pedidos();
   const [validated, setValidated] = useState(false);
   const [seleccionado, setSeleccionado] = useState(false);
@@ -114,7 +119,8 @@ export const Crear_pedido = ({ Entregadores }) => {
     try {
       CrearPedido(
         { nombre, documento, tipoVehiculo, acompañante, acompanado },
-        pedidosConNumeroRuta
+        pedidosConNumeroRuta,
+        agregar
       );
     } catch (error) {
       showError("Ah ocurrido un error al crear la carpeta: \n" + error);
@@ -124,6 +130,12 @@ export const Crear_pedido = ({ Entregadores }) => {
     }
   };
 
+  useEffect(() => {
+    if (agregar) {
+      setEntregadorSelec(docentregador);
+      setNumeroRuta(numruta)
+    }
+  }, [agregar, docentregador]);
   useEffect(() => {
     if (EntregadorSelec !== "") {
       setSeleccionado(true);
@@ -246,6 +258,7 @@ export const Crear_pedido = ({ Entregadores }) => {
                     className="mb-1"
                   >
                     <Form.Select
+                      disabled={agregar}
                       className="form-control-gestion"
                       aria-label="Default select example"
                       value={EntregadorSelec}
@@ -431,6 +444,7 @@ export const Crear_pedido = ({ Entregadores }) => {
                         className="mb-1"
                       >
                         <Form.Control
+                          disabled={agregar}
                           type="text"
                           placeholder="Numero de ruta"
                           value={numeroRuta}
@@ -593,7 +607,7 @@ export const Crear_pedido = ({ Entregadores }) => {
 
                 {/* Botón para agregar más pedidos */}
                 <PrimeButton
-                type="button"
+                  type="button"
                   label=" Agregar Pedido"
                   disabled={errorRuta}
                   icon="pi pi-plus"
@@ -602,7 +616,7 @@ export const Crear_pedido = ({ Entregadores }) => {
                 />
                 {pedidos.length > 1 && (
                   <PrimeButton
-                  type="button"
+                    type="button"
                     icon="pi pi-minus"
                     className="mb-3 p-button p-component p-button-outlined button-gestion"
                     onClick={eliminarPedido}
@@ -613,7 +627,6 @@ export const Crear_pedido = ({ Entregadores }) => {
                 <div className="text-center mb-3">
                   <Button
                     type="submit"
-
                     className="p-button p-component p-button-outlined button-gestion"
                   >
                     Enviar

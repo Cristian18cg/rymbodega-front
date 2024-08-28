@@ -9,13 +9,12 @@ import { InputText } from "primereact/inputtext";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { Dialog } from "primereact/dialog";
-import { Knob } from "primereact/knob";
 import { ProgressBar } from "primereact/progressbar";
 import { InputSwitch } from "primereact/inputswitch";
 import { Tag } from "primereact/tag";
-
+import { Crear_pedido } from "../Crear_pedido";
 import { PedidosRuta } from "./PedidosRuta";
-export const Rutas_entregador = ({ documento, nombreentregador }) => {
+export const Rutas_entregador = ({ documento, nombreentregador,Entregadores }) => {
   const {
     Pedidos,
     Listar_pedidos,
@@ -24,9 +23,11 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     setPedidos,
     actualizar_pedidos,
     completar_ruta,
+    Visibleagregar, setVisibleagregar
   } = useControl_Pedidos();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [rutaCompleta, setrutaCompleta] = useState(false);
+  const [numruta, setnumruta] = useState("");
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
@@ -112,7 +113,6 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
   };
 
   const getSeverityAcompanado = (value) => {
-    console.log(value)
     switch (value) {
       case true:
         return "success";
@@ -124,7 +124,6 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     }
   };
   const getvalueAcompanado = (value) => {
-    console.log(value)
     switch (value) {
       case true:
         return "Si";
@@ -136,7 +135,6 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
     }
   };
   const statusBodyAcompanado = (rowData) => {
-    console.log(rowData.pedidos[0].acompanado);
     return (
       <Tag
       className="mx-4"
@@ -264,9 +262,21 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
       />
     );
   };
+  
   return (
     <div className="row">
       <div className="col-md-12 ">
+      <Dialog
+          header={`Crear ruta `}
+          visible={Visibleagregar}
+          onHide={() => {
+            setVisibleagregar(false);
+          }}
+          maximizable
+          style={{ width: "80vw" }}
+        >
+          <Crear_pedido Entregadores={Entregadores} agregar={true} docentregador={documento} numruta={numruta}></Crear_pedido>
+        </Dialog>
         <DataTable
           sortField="numero_ruta"
           sortOrder={-1}
@@ -284,6 +294,7 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
           expandedRows={expandedRows}
           onRowToggle={(e) => setExpandedRows(e.data)}
           rowExpansionTemplate={rowExpansionTemplate}
+          stripedRows 
         >
           <Column expander={allowExpansion} style={{ width: "5rem" }} />
           <Column
@@ -307,8 +318,13 @@ export const Rutas_entregador = ({ documento, nombreentregador }) => {
           <Column header="Acompañado" body={statusBodyAcompanado} />
           <Column header="Completado" body={completadoFuncion} />
           <Column header="Completar ruta" body={completadoSwitch} />
+          <Column body={(data)=>{
+          return <a className="pi pi-plus trashb" style={{ color: 'blue' }} onClick={()=> {
+            setnumruta(data.numero_ruta)
+            setVisibleagregar(true)}}></a>
+        }}/>        
         </DataTable>
       </div>
     </div>
-  );
+  );        
 };

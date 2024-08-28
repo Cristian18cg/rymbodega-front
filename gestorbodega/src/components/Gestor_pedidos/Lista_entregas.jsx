@@ -196,7 +196,7 @@ export const Lista_entregas = () => {
           maximizable
           style={{ width: "98vw", height: "90vh"  }}
         >
-          <Rutas_entregador documento={DocEntregador} nombreentregador={nomEntregador}/>
+          <Rutas_entregador documento={DocEntregador} nombreentregador={nomEntregador} Entregadores={EntregadoresTotal}/>
         </Dialog>
         <DataTable
           rows={10}

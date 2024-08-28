@@ -31,19 +31,25 @@ export const PedidosRuta = ({ data, documento }) => {
     );
   };
   const isPositiveInteger = (val) => {
-    let str = String(val);
-
-    str = str.trim();
-
+    let str = String(val);  // Convertir el valor a cadena
+    str = str.trim();       // Eliminar espacios en blanco al principio y al final
+  
     if (!str) {
-      return false;
+      return false;  // Si la cadena está vacía, devolver false
     }
-
-    str = str.replace(/^0+/, "") || "0";
-    let n = Math.floor(Number(str));
-
-    return n !== Infinity && String(n) === str && n >= 0;
+  
+    // Eliminar ceros a la izquierda solo si no hay un punto decimal
+    if (!str.includes('.')) {
+      str = str.replace(/^0+/, "") || "0";
+    }
+  
+    // Intentar convertir la cadena a un número
+    let n = Number(str);
+  
+    // Comprobar si el número es finito, coincide con la cadena original y es mayor o igual a cero
+    return n !== Infinity && !isNaN(n) && n >= 0;
   };
+  
 
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e;
@@ -165,7 +171,7 @@ export const PedidosRuta = ({ data, documento }) => {
   };
   return (
     <div className="p-3">
-      <DataTable value={data.pedidos} editMode="cell">
+      <DataTable value={data.pedidos} editMode="cell" >
         <Column
           field="numero_factura"
           header="Número factura"
