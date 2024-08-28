@@ -226,7 +226,7 @@ const PedidosPovider = ({ children }) => {
     }
   };
   /* Funcion para actualizar informacion del pedido */
-  const actualizar_pedidos = async (id, field, dato, documento) => {
+  const actualizar_pedidos = async (id, field, dato, documento,efectivo, numeroRuta) => {
     try {
       const tokenDeAcceso = token;
       const response = await clienteAxios.put(
@@ -237,6 +237,8 @@ const PedidosPovider = ({ children }) => {
           dato: dato,
           usuario: usuario,
           documento: documento,
+          efectivo:efectivo,
+          numeroRuta:numeroRuta
         },
         {
           headers: {
@@ -245,7 +247,9 @@ const PedidosPovider = ({ children }) => {
           },
         }
       );
-      console.log(Pedidos);
+      if(efectivo){
+        Listar_pedidos(documento)
+      }
       Listar_entregadores_rutas();
       showSuccess(response.data.success);
     } catch (error) {

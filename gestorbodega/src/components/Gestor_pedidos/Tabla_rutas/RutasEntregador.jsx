@@ -14,7 +14,12 @@ import { InputSwitch } from "primereact/inputswitch";
 import { Tag } from "primereact/tag";
 import { Crear_pedido } from "../Crear_pedido";
 import { PedidosRuta } from "./PedidosRuta";
-export const Rutas_entregador = ({ documento, nombreentregador,Entregadores }) => {
+import { InputNumber } from "primereact/inputnumber";
+export const Rutas_entregador = ({
+  documento,
+  nombreentregador,
+  Entregadores,
+}) => {
   const {
     Pedidos,
     Listar_pedidos,
@@ -23,10 +28,10 @@ export const Rutas_entregador = ({ documento, nombreentregador,Entregadores }) =
     setPedidos,
     actualizar_pedidos,
     completar_ruta,
-    Visibleagregar, setVisibleagregar
+    Visibleagregar,
+    setVisibleagregar,
   } = useControl_Pedidos();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-  const [rutaCompleta, setrutaCompleta] = useState(false);
   const [numruta, setnumruta] = useState("");
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -137,16 +142,13 @@ export const Rutas_entregador = ({ documento, nombreentregador,Entregadores }) =
   const statusBodyAcompanado = (rowData) => {
     return (
       <Tag
-      className="mx-4"
+        className="mx-4"
         value={getvalueAcompanado(rowData.pedidos[0].acompanado)}
         severity={getSeverityAcompanado(rowData.pedidos[0].acompanado)}
       ></Tag>
     );
   };
-  const acompañadofuncion = (data) => {
-    const acompañado = data.pedidos[0].acompanado;
-    return acompañado;
-  };
+
   const valorruta = (data) => {
     // Filtra los pedidos que pertenecen a la ruta específica
     const pedidosRuta = data.pedidos;
@@ -213,15 +215,35 @@ export const Rutas_entregador = ({ documento, nombreentregador,Entregadores }) =
       0
     );
 
+    const totalefectivo = pedidosRuta.reduce(
+      (acc, pedido) => acc + pedido.efectivo,
+      0
+    );
     // Calcula el total faltante
 
-    const totalFaltante = totalPedidos - totalTransferencia - totaldevolucion;
+    const totalFaltante = totalPedidos - totalTransferencia - totaldevolucion- totalefectivo;
     const total = new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(totalFaltante);
+    return total;
+  };
+  const valorefectivo = (data) => {
+    // Filtra los pedidos que pertenecen a la ruta específica
+    const pedidosRuta = data.pedidos;
+    // Calcula el total de valores de los pedidos
+    const totalPedidos = pedidosRuta.reduce(
+      (acc, pedido) => acc + pedido.efectivo,
+      0
+    );
+    const total = new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(totalPedidos);
     return total;
   };
 
@@ -262,11 +284,72 @@ export const Rutas_entregador = ({ documento, nombreentregador,Entregadores }) =
       />
     );
   };
-  
+  const isPositiveInteger = (val) => {
+    let str = String(val); // Convertir el valor a cadena
+    str = str.trim(); // Eliminar espacios en blanco al principio y al final
+
+    if (!str) {
+      return false; // Si la cadena está vacía, devolver false
+    }
+    // Eliminar ceros a la izquierda solo si no hay un punto decimal
+    if (!str.includes(".")) {
+      str = str.replace(/^0+/, "") || "0";
+    }
+    // Intentar convertir la cadena a un número
+    let n = Number(str);
+    // Comprobar si el número es finito, coincide con la cadena original y es mayor o igual a cero
+    return n !== Infinity && !isNaN(n) && n >= 0;
+  };
+
+  const onCellEditComplete = (e) => {
+    let { rowData, newValue, field, originalEvent: event } = e;
+
+    switch (field) {
+      case "efectivo":
+        if (isPositiveInteger(newValue)) {
+           actualizar_pedidos(rowData.pedidos[0].id, 'efectivo', newValue, documento,true, rowData.numero_ruta);
+
+        } else event.preventDefault();
+        break;
+      default:
+        if (newValue?.trim().length > 0) rowData[field] = newValue;
+        else event.preventDefault();
+        break;
+    }
+  };
+
+  const cellEditor = (options) => {
+    if (options.field === "numero_factura") return textEditor(options);
+    else return priceEditor(options);
+  };
+  const textEditor = (options) => {
+    return (
+      <InputText
+        type="text"
+        value={options.value}
+        onChange={(e) => options.editorCallback(e.target.value)}
+        onKeyDown={(e) => e.stopPropagation()}
+      />
+    );
+  };
+  const priceEditor = (options) => {
+    return (
+      <InputNumber
+        value={options.value}
+        onValueChange={(e) => options.editorCallback(e.value)}
+        mode="currency"
+        currency="COP"
+        locale="es"
+        maxFractionDigits={2}
+        onKeyDown={(e) => e.stopPropagation()}
+      />
+    );
+  };
+
   return (
     <div className="row">
       <div className="col-md-12 ">
-      <Dialog
+        <Dialog
           header={`Crear ruta `}
           visible={Visibleagregar}
           onHide={() => {
@@ -275,7 +358,12 @@ export const Rutas_entregador = ({ documento, nombreentregador,Entregadores }) =
           maximizable
           style={{ width: "80vw" }}
         >
-          <Crear_pedido Entregadores={Entregadores} agregar={true} docentregador={documento} numruta={numruta}></Crear_pedido>
+          <Crear_pedido
+            Entregadores={Entregadores}
+            agregar={true}
+            docentregador={documento}
+            numruta={numruta}
+          ></Crear_pedido>
         </Dialog>
         <DataTable
           sortField="numero_ruta"
@@ -294,7 +382,8 @@ export const Rutas_entregador = ({ documento, nombreentregador,Entregadores }) =
           expandedRows={expandedRows}
           onRowToggle={(e) => setExpandedRows(e.data)}
           rowExpansionTemplate={rowExpansionTemplate}
-          stripedRows 
+          stripedRows
+          editMode="cell"
         >
           <Column expander={allowExpansion} style={{ width: "5rem" }} />
           <Column
@@ -313,18 +402,35 @@ export const Rutas_entregador = ({ documento, nombreentregador,Entregadores }) =
           <Column header="Valor Ruta" body={valorruta} />
           <Column header="$ Transferencias" body={valortransferencias} />
           <Column header="$ devuelto" body={valordevuelto} />
+          <Column
+            header="$ efectivo"
+            field="efectivo"
+            body={valorefectivo}
+            editor={(options) => cellEditor(options)}
+            onCellEditComplete={onCellEditComplete}
+          />
           <Column header="$ faltante" body={valorfaltante} />
+
           <Column header="Vehiculo" body={vehiculofuncion} />
           <Column header="Acompañado" body={statusBodyAcompanado} />
           <Column header="Completado" body={completadoFuncion} />
           <Column header="Completar ruta" body={completadoSwitch} />
-          <Column body={(data)=>{
-          return <a className="pi pi-plus trashb" style={{ color: 'blue' }} onClick={()=> {
-            setnumruta(data.numero_ruta)
-            setVisibleagregar(true)}}></a>
-        }}/>        
+          <Column
+            body={(data) => {
+              return (
+                <a
+                  className="pi pi-plus trashb"
+                  style={{ color: "blue" }}
+                  onClick={() => {
+                    setnumruta(data.numero_ruta);
+                    setVisibleagregar(true);
+                  }}
+                ></a>
+              );
+            }}
+          />
         </DataTable>
       </div>
     </div>
-  );        
+  );
 };

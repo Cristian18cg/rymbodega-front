@@ -8,7 +8,13 @@ import { Tag } from "primereact/tag";
 import { InputSwitch } from "primereact/inputswitch";
 import { Button } from "react-bootstrap";
 export const PedidosRuta = ({ data, documento }) => {
-  const { actualizar_pedidos, eliminar_pedido, Listar_pedidos, Pedidos,setPedidos } = useControl_Pedidos();
+  const {
+    actualizar_pedidos,
+    eliminar_pedido,
+    Listar_pedidos,
+    Pedidos,
+    setPedidos,
+  } = useControl_Pedidos();
   const [id, setID] = useState("");
   const [completado, setCompletado] = useState("");
   const getSeverityTienda = (value) => {
@@ -31,25 +37,24 @@ export const PedidosRuta = ({ data, documento }) => {
     );
   };
   const isPositiveInteger = (val) => {
-    let str = String(val);  // Convertir el valor a cadena
-    str = str.trim();       // Eliminar espacios en blanco al principio y al final
-  
+    let str = String(val); // Convertir el valor a cadena
+    str = str.trim(); // Eliminar espacios en blanco al principio y al final
+
     if (!str) {
-      return false;  // Si la cadena está vacía, devolver false
+      return false; // Si la cadena está vacía, devolver false
     }
-  
+
     // Eliminar ceros a la izquierda solo si no hay un punto decimal
-    if (!str.includes('.')) {
+    if (!str.includes(".")) {
       str = str.replace(/^0+/, "") || "0";
     }
-  
+
     // Intentar convertir la cadena a un número
     let n = Number(str);
-  
+
     // Comprobar si el número es finito, coincide con la cadena original y es mayor o igual a cero
     return n !== Infinity && !isNaN(n) && n >= 0;
   };
-  
 
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e;
@@ -63,8 +68,6 @@ export const PedidosRuta = ({ data, documento }) => {
         break;
       case "valor_transferencia":
         if (isPositiveInteger(newValue)) {
-       
-
           actualizar_pedidos(rowData.id, field, newValue, documento);
           rowData[field] = newValue;
         } else event.preventDefault();
@@ -74,6 +77,17 @@ export const PedidosRuta = ({ data, documento }) => {
           actualizar_pedidos(rowData.id, field, newValue, documento);
           rowData[field] = newValue;
         } else event.preventDefault();
+        break;
+      case "efectivo":
+        if (isPositiveInteger(newValue)) {
+          actualizar_pedidos(rowData.id, field, newValue, documento);
+          rowData[field] = newValue;
+        } else event.preventDefault();
+        break;
+      case "numero_factura":
+        actualizar_pedidos(rowData.id, field, newValue, documento);
+        rowData[field] = newValue;
+
         break;
       default:
         if (newValue?.trim().length > 0) rowData[field] = newValue;
@@ -115,9 +129,10 @@ export const PedidosRuta = ({ data, documento }) => {
     const valorPedido = Number(data.valor_pedido) || 0;
     const valorTransferencia = Number(data.valor_transferencia) || 0;
     const devolucion = Number(data.devolucion) || 0;
+    const efectivo = Number(data.efectivo) || 0;
 
     // Calcula el total faltante
-    const totalFaltante = valorPedido - valorTransferencia - devolucion;
+    const totalFaltante = valorPedido - valorTransferencia - devolucion - efectivo;
 
     // Formatea el resultado a la moneda COP
     const total = new Intl.NumberFormat("es-CO", {
@@ -133,32 +148,37 @@ export const PedidosRuta = ({ data, documento }) => {
   const completarpedido = (dato, ud) => {
     const doc = documento;
     // Verifica si `Pedidos` es un array, y si no lo es, lo inicializamos como un array vacío
-  if (!Array.isArray(Pedidos)) {
-    console.error('Pedidos no está definido como un array. Inicializando como array vacío.');
-    setPedidos([]);
-    return;
-  } // Actualiza el campo 'completado' del pedido específico
-  const updatedPedidos = Pedidos.map((ruta) => {
-    // Verifica que la propiedad `pedidos` exista y sea un array
-    if (!ruta.pedidos || !Array.isArray(ruta.pedidos)) {
-      console.error('La propiedad pedidos no está definida o no es un array en la ruta:', ruta);
-      return ruta;
-    }
-
-    // Mapea sobre los pedidos para encontrar y actualizar el que tiene el id igual a `ud`
-    const nuevosPedidos = ruta.pedidos.map((pedido) => {
-      if (pedido.id === ud) {
-        return { ...pedido, completado: dato };
+    if (!Array.isArray(Pedidos)) {
+      console.error(
+        "Pedidos no está definido como un array. Inicializando como array vacío."
+      );
+      setPedidos([]);
+      return;
+    } // Actualiza el campo 'completado' del pedido específico
+    const updatedPedidos = Pedidos.map((ruta) => {
+      // Verifica que la propiedad `pedidos` exista y sea un array
+      if (!ruta.pedidos || !Array.isArray(ruta.pedidos)) {
+        console.error(
+          "La propiedad pedidos no está definida o no es un array en la ruta:",
+          ruta
+        );
+        return ruta;
       }
-      return pedido;
+
+      // Mapea sobre los pedidos para encontrar y actualizar el que tiene el id igual a `ud`
+      const nuevosPedidos = ruta.pedidos.map((pedido) => {
+        if (pedido.id === ud) {
+          return { ...pedido, completado: dato };
+        }
+        return pedido;
+      });
+
+      // Retorna la ruta con los pedidos actualizados
+      return { ...ruta, pedidos: nuevosPedidos };
     });
 
-    // Retorna la ruta con los pedidos actualizados
-    return { ...ruta, pedidos: nuevosPedidos };
-  });
-
-  // Actualiza el estado con los pedidos actualizados
-  setPedidos(updatedPedidos);
+    // Actualiza el estado con los pedidos actualizados
+    setPedidos(updatedPedidos);
     actualizar_pedidos(ud, "completado", dato, doc);
   };
   const completadoSwitch = (rowData) => {
@@ -171,7 +191,7 @@ export const PedidosRuta = ({ data, documento }) => {
   };
   return (
     <div className="p-3">
-      <DataTable value={data.pedidos} editMode="cell" >
+      <DataTable value={data.pedidos} editMode="cell">
         <Column
           field="numero_factura"
           header="Número factura"
@@ -227,7 +247,21 @@ export const PedidosRuta = ({ data, documento }) => {
           editor={(options) => cellEditor(options)}
           onCellEditComplete={onCellEditComplete}
         ></Column>
-
+        <Column
+          field="efectivo"
+          header="Efectivo"
+          sortable
+          body={(rowData) =>
+            new Intl.NumberFormat("es-CO", {
+              style: "currency",
+              currency: "COP",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(rowData.efectivo)
+          }
+          editor={(options) => cellEditor(options)}
+          onCellEditComplete={onCellEditComplete}
+        ></Column>
         <Column header="Valor faltante" body={valorfaltante} />
         <Column header="Completados" body={completadoSwitch} />
 
@@ -237,10 +271,17 @@ export const PedidosRuta = ({ data, documento }) => {
           sortable
           body={statusBodyTipo}
         ></Column>
-        <Column body={(data)=>{
-          return <a className="pi pi-trash trashb" style={{ color: 'red' }} onClick={()=> eliminar_pedido(data.id,documento)}></a>
-        }}/>
-        
+        <Column
+          body={(data) => {
+            return (
+              <a
+                className="pi pi-trash trashb"
+                style={{ color: "red" }}
+                onClick={() => eliminar_pedido(data.id, documento)}
+              ></a>
+            );
+          }}
+        />
       </DataTable>
     </div>
   );
