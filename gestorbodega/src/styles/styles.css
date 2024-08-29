@@ -613,6 +613,27 @@ color: white;
 .progressbarpedidos .p-progressbar-label{
   color: rgb(255, 255, 255)!important;
 }
+.progressbarCredito{
+  background-color: rgb(251, 252, 219);
+}
+.progressbarCredito .p-progressbar-value{
+  color: rgb(255, 255, 255);
+  background-color: #f8a444;
+}
+.progressbarCredito .p-progressbar-label{
+  color: rgb(255, 255, 255)!important;
+}
+
+.progressbarMixto{
+  background-color: rgb(251, 252, 219);
+}
+.progressbarMixto .p-progressbar-value{
+  color: rgb(255, 255, 255);
+  background: linear-gradient(to right, #f8a444, #ff0000); 
+}
+.progressbarMixto .p-progressbar-label{
+  color: rgb(255, 255, 255)!important;
+}
 /* .trashb {
   transition: transform 0.3s ease, background-color 0.3s ease; /* Suaviza el cambio de tamaño y color */
 

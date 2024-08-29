@@ -15,7 +15,8 @@ export const Crear_pedido = ({
   docentregador,
   numruta,
 }) => {
-  const { CrearPedido } = useControl_Pedidos();
+  const { CrearPedido, ultimaRuta, setultimaRuta, obtener_ruta, ultimaBase } =
+    useControl_Pedidos();
   const [validated, setValidated] = useState(false);
   const [seleccionado, setSeleccionado] = useState(false);
   const [EntregadorSelec, setEntregadorSelec] = useState("");
@@ -24,12 +25,26 @@ export const Crear_pedido = ({
   const [documento, setDocumento] = useState("");
   const [tipoVehiculo, setTipoVehiculo] = useState("");
   const [numeroRuta, setNumeroRuta] = useState("");
+  const [base, setBase] = useState("");
+  const [formattedBase, setFormattedBase] = useState("");
   const [acompanantes, setAcompanantes] = useState([]);
   const [acompañante, setAcompañante] = useState("");
   const [pedidos, setPedidos] = useState([
     { valorPedido: "", numeroFactura: "", tipoPedido: "Tienda" },
     // Puedes agregar más pedidos según sea necesario
   ]);
+  useEffect(() => {
+    if (!numruta) {
+
+      const ruta = parseInt(ultimaRuta, 0) + 1;
+      setNumeroRuta(ruta);
+      console.log(ultimaBase)
+      setBase(ultimaBase);
+      setFormattedBase(ultimaBase);
+    }
+    // Llama a la función asincrónica para obtener los datos
+  }, [ultimaRuta, ultimaBase]);
+
   const [inputValues, setInputValues] = useState(
     pedidos.map((p) => p.valorPedido)
   );
@@ -114,6 +129,7 @@ export const Crear_pedido = ({
     const pedidosConNumeroRuta = pedidos.map((pedido) => ({
       ...pedido,
       numeroRuta,
+      base
     }));
 
     try {
@@ -133,7 +149,7 @@ export const Crear_pedido = ({
   useEffect(() => {
     if (agregar) {
       setEntregadorSelec(docentregador);
-      setNumeroRuta(numruta)
+      setNumeroRuta(numruta);
     }
   }, [agregar, docentregador]);
   useEffect(() => {
@@ -146,7 +162,7 @@ export const Crear_pedido = ({
       setNombre(entregador?.nombres);
       setApellidos(entregador?.apellidos);
       setTipoVehiculo(entregador?.vehiculo);
-
+      obtener_ruta(entregador.documento);
       // Filtrar el entregador seleccionado y actualizar los acompañantes
       const nuevosAcompanantes = Entregadores.filter(
         (ent) => ent.documento !== EntregadorSelec
@@ -209,6 +225,7 @@ export const Crear_pedido = ({
       ...pedidos,
       {
         numeroRuta: numeroRuta,
+        base: base,
         valorPedido: "",
         numeroFactura: "",
         tipoPedido: "Tienda",
@@ -239,6 +256,36 @@ export const Crear_pedido = ({
     funcionRuta();
   }, [numeroRuta, pedidos]);
 
+  const formatCurrency = (value) => {
+    const numericValue = value.toString().replace(/\D/g, ""); // Asegura que value es una cadena
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      maximumFractionDigits: 0,
+    }).format(numericValue);
+  };
+
+  const handleBlur2 = () => {
+    // Formatea y muestra el valor
+    setFormattedBase(formatCurrency(base));
+  };
+
+  const handleFocus2 = () => {
+    // Remueve el formato de moneda y muestra solo los números
+    const numericValue = base.toString().replace(/[^\d]/g, "");
+    console.log(numericValue)
+    setBase(numericValue);
+    setFormattedBase(numericValue); // Muestra el valor numérico sin formatear cuando el campo está enfocado
+  };
+
+  const handleChange2 = (e) => {
+    const value = e.target.value;
+    // Guarda el valor sin formatear en el estado 'base'
+    console.log(value)
+    setBase(value);
+    // Actualiza el estado 'formattedBase' para mostrar el texto actual mientras el usuario escribe
+    setFormattedBase(value);
+  };
   return (
     <div className="d-flex justify-content-center align-items-center mt-1 ">
       {Entregadores.length > 0 ? (
@@ -458,6 +505,29 @@ export const Crear_pedido = ({
                       </p>
                     )}
                   </Col>
+                  {/* base */}
+                  <Col xs={12} md={6} className="mb-3">
+                    <Form.Group
+                      as={Col}
+                      controlId="Base"
+                      className="form-control-gestion"
+                    >
+                      <FloatingLabel
+                        controlId="floatingInput"
+                        label="Base"
+                        className="mb-1"
+                      >
+                        <Form.Control
+                          type="text"
+                          placeholder="Base"
+                          value={formattedBase}
+                          onChange={handleChange2}
+                          onBlur={handleBlur2}
+                          onFocus={handleFocus2}
+                        />
+                      </FloatingLabel>
+                    </Form.Group>
+                  </Col>
                   {/* Checkbox para indicar si va acompañado */}
                   <Col xs={12} md={6} className="mb-3">
                     <Form.Group
@@ -515,7 +585,7 @@ export const Crear_pedido = ({
                   <>
                     <Row>
                       <Col xs={12} md={12} className="mb-3">
-                        {index + 1})Pedido
+                        {index + 1}) Pedido
                       </Col>
                     </Row>
                     <Row>

@@ -8,8 +8,11 @@ const PedidosPovider = ({ children }) => {
   const { token, usuario } = useControl();
   const [resCrearColaborador, setresCrearColaborador] = useState("");
   const [Pedidos, setPedidos] = useState("");
+  const [ultimaRuta, setultimaRuta] = useState("");
+  const [ultimaBase, setultimaBase] = useState("");
   const [ListadoEntregadores, setListadoEntregadores] = useState("");
   const [Listahistorico, setListahistorico] = useState("");
+
   const [EntregadoresTotal, setEntregadoresTotal] = useState("");
   const [VisibleRuta, setVisibleRuta] = useState(false);
   const [Visibleagregar, setVisibleagregar] = useState(false);
@@ -91,6 +94,26 @@ const PedidosPovider = ({ children }) => {
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
     }
   };
+  /* Funcion para obtener ultima ruta */
+  const obtener_ruta = async (documento) => {
+    try {
+      const tokenDeAcceso = token;
+      const response = await clienteAxios.get(
+        `pedidos/obtener_ruta/?documento=${documento}`,
+        {
+          headers: {
+            Authorization: `Bearer ${tokenDeAcceso}`,
+          },
+        }
+      );
+      console.log(response.data)
+      setultimaRuta(response.data.numero_ruta);
+      setultimaBase(response.data.base)
+    } catch (error) {
+      FuncionErrorToken(error);
+      // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
+    }
+  };
   const historico_entregas = async (
     fechaInicio = "",
     fechaFin = "",
@@ -164,6 +187,7 @@ const PedidosPovider = ({ children }) => {
   };
   /* Funcion de crear pedido */
   const CrearPedido = async (datos, pedidos, agregar) => {
+    console.log(pedidos)
     const tokenDeAcceso = token;
     try {
       const formData = new FormData();
@@ -351,7 +375,9 @@ const PedidosPovider = ({ children }) => {
       Listahistorico,
       setListahistorico,
       historico_entregas,
-      Visibleagregar, setVisibleagregar
+      Visibleagregar, setVisibleagregar,
+      ultimaRuta, setultimaRuta,
+      obtener_ruta,ultimaBase, setultimaBase
     };
   }, [
     VisibleRutaEntregador,
@@ -380,6 +406,8 @@ const PedidosPovider = ({ children }) => {
     historico_entregas,
     Visibleagregar,
     setVisibleagregar,
+    ultimaRuta, setultimaRuta,
+    obtener_ruta,ultimaBase, setultimaBase
   ]);
 
   return (

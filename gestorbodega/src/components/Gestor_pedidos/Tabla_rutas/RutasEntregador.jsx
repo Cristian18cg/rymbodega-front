@@ -149,6 +149,19 @@ export const Rutas_entregador = ({
     );
   };
 
+  const valorbase = (data) => {
+    // Filtra los pedidos que pertenecen a la ruta específica
+    const pedidosRuta = data.pedidos;
+    // Calcula el total de valores de los pedidos
+  
+    const total = new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(pedidosRuta[0].base);
+    return total;
+  };
   const valorruta = (data) => {
     // Filtra los pedidos que pertenecen a la ruta específica
     const pedidosRuta = data.pedidos;
@@ -248,21 +261,39 @@ export const Rutas_entregador = ({
   };
 
   const completadoFuncion = (data) => {
-    // Filtra los pedidos para contar los completados y los totales
+    // Filtra los pedidos para contar los completados, los de crédito y los totales
     const totalPedidos = data.pedidos.length;
     const pedidosCompletados = data.pedidos.filter(
       (pedido) => pedido.completado
     ).length;
+    const pedidosConCredito = data.pedidos.filter(
+      (pedido) => pedido.credito
+    ).length;
 
+    const pedidosSumados = pedidosCompletados + pedidosConCredito;
     // Calcula el porcentaje de completado y redondea a dos decimales
     const porcentajeCompletado =
-      totalPedidos > 0 ? (pedidosCompletados / totalPedidos) * 100 : 0;
+      totalPedidos > 0 ? (pedidosSumados / totalPedidos) * 100 : 0;
     const porcentajeRedondeado = Math.round(porcentajeCompletado);
-
+  
+    // Determina la clase de progreso basada en la combinación de estados de pedidos
+    let progressBarClass = "progressbarpedidos";
+  
+    if (pedidosConCredito === totalPedidos) {
+      // Todos los pedidos son con crédito
+      progressBarClass = "progressbarCredito";
+    } else if (pedidosCompletados === totalPedidos) {
+      // Todos los pedidos están completados
+      progressBarClass = "progressbarpedidos";
+    } else if (pedidosConCredito + pedidosCompletados === totalPedidos) {
+      // Hay una combinación de pedidos completados y pedidos con crédito
+      progressBarClass = "progressbarMixto";
+    }
+  
     return (
       <ProgressBar
         value={porcentajeRedondeado}
-        className="progressbarpedidos"
+        className={progressBarClass}
       />
     );
   };
@@ -400,6 +431,11 @@ export const Rutas_entregador = ({
             }}
           />
           <Column header="Valor Ruta" body={valorruta} />
+          <Column
+            field="base"
+            header="Base"
+            body={valorbase}
+          />
           <Column header="$ Transferencias" body={valortransferencias} />
           <Column header="$ devuelto" body={valordevuelto} />
           <Column

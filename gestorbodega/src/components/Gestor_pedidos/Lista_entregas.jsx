@@ -175,7 +175,7 @@ export const Lista_entregas = () => {
   return (
     <div className="row">
       <div className="col-md-12 ">
-        {/* Dialog de descripcion */}
+        {/* Dialog de crear ruta */}
         <Dialog
           header={`Crear ruta `}
           visible={VisibleRuta}
@@ -185,8 +185,10 @@ export const Lista_entregas = () => {
           maximizable
           style={{ width: "80vw" }}
         >
-          <Crear_pedido Entregadores={EntregadoresTotal}></Crear_pedido>
+          <Crear_pedido Entregadores={EntregadoresTotal} agregar={false}></Crear_pedido>
         </Dialog>
+        {/* Dialog de rutas*/}
+
         <Dialog
           header={`Lista rutas ${nomEntregador} `}
           visible={VisibleRutaEntregador}
@@ -237,6 +239,8 @@ export const Lista_entregas = () => {
             field="entregador"
             header="Nombre Completo"
           />
+           <Column header="Cantidad de creditos" field="creditos" />
+
            <Column header="Valor pedidos" body={valorruta} />
 
           <Column

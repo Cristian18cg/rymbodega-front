@@ -132,7 +132,8 @@ export const PedidosRuta = ({ data, documento }) => {
     const efectivo = Number(data.efectivo) || 0;
 
     // Calcula el total faltante
-    const totalFaltante = valorPedido - valorTransferencia - devolucion - efectivo;
+    const totalFaltante =
+      valorPedido - valorTransferencia - devolucion - efectivo;
 
     // Formatea el resultado a la moneda COP
     const total = new Intl.NumberFormat("es-CO", {
@@ -147,45 +148,50 @@ export const PedidosRuta = ({ data, documento }) => {
 
   const completarpedido = (dato, ud) => {
     const doc = documento;
-    // Verifica si `Pedidos` es un array, y si no lo es, lo inicializamos como un array vacío
-    if (!Array.isArray(Pedidos)) {
-      console.error(
-        "Pedidos no está definido como un array. Inicializando como array vacío."
-      );
-      setPedidos([]);
-      return;
-    } // Actualiza el campo 'completado' del pedido específico
-    const updatedPedidos = Pedidos.map((ruta) => {
-      // Verifica que la propiedad `pedidos` exista y sea un array
-      if (!ruta.pedidos || !Array.isArray(ruta.pedidos)) {
-        console.error(
-          "La propiedad pedidos no está definida o no es un array en la ruta:",
-          ruta
-        );
-        return ruta;
-      }
+  // Actualiza el campo 'completado' del pedido específico
+ 
 
-      // Mapea sobre los pedidos para encontrar y actualizar el que tiene el id igual a `ud`
-      const nuevosPedidos = ruta.pedidos.map((pedido) => {
-        if (pedido.id === ud) {
-          return { ...pedido, completado: dato };
-        }
-        return pedido;
-      });
-
-      // Retorna la ruta con los pedidos actualizados
-      return { ...ruta, pedidos: nuevosPedidos };
-    });
-
-    // Actualiza el estado con los pedidos actualizados
-    setPedidos(updatedPedidos);
     actualizar_pedidos(ud, "completado", dato, doc);
+    Listar_pedidos(doc);
+    if (dato) {
+        // Actualiza el campo 'completado' del pedido específico
+
+
+      // Encuentra el pedido con el id `ud` y verifica si 'credito' es true
+      const pedidoConCredito = Pedidos.some((ruta) =>
+        ruta.pedidos.some((pedido) => pedido.id === ud && pedido.credito)
+      );
+
+      // Si se encuentra un pedido con 'credito' true, llama a la función `credito`
+      if (pedidoConCredito) {
+        credito(false, ud);
+      }else{
+        Listar_pedidos(doc);
+      }
+    }else{
+      Listar_pedidos(doc);
+    }
   };
   const completadoSwitch = (rowData) => {
     return (
       <InputSwitch
         checked={rowData.completado}
         onChange={(e) => completarpedido(e.value, rowData.id)}
+      />
+    );
+  };
+  const credito = (dato, ud) => {
+    const doc = documento;
+    actualizar_pedidos(ud, "credito", dato, doc);
+    Listar_pedidos(doc);
+
+  };
+  const creditoSwitch = (rowData) => {
+    return (
+      <InputSwitch
+        disabled={rowData.completado}
+        checked={rowData.credito}
+        onChange={(e) => credito(e.value, rowData.id)}
       />
     );
   };
@@ -264,6 +270,7 @@ export const PedidosRuta = ({ data, documento }) => {
         ></Column>
         <Column header="Valor faltante" body={valorfaltante} />
         <Column header="Completados" body={completadoSwitch} />
+        <Column header="Credito" body={creditoSwitch} />
 
         <Column
           field="tipo_pedido"
