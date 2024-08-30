@@ -1,16 +1,11 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import Login from "./components/Login/login";
-import { LogisticaProvider } from "./context/logistica/logisticaContext";
-import { VentasProvider } from "./context/ventas/ventasContext";
-import { PedidosPovider } from "./context/pedidos/PedidosContext";
 import "primereact/resources/themes/saga-blue/theme.css"; // Tema
 import "primereact/resources/primereact.min.css"; // Estilos base
 import "primeicons/primeicons.css";
+import Login from "./components/Login/login";
+import { PedidosPovider } from "./context/pedidos/PedidosContext";
 import { LoginProvider } from "./context/login/loginContext";
-import { CarpetaActivoPovider } from "./context/gestion_humana/contratoactivoContext";
-import { CarpetaIngresoPovider } from "./context/gestion_humana/DocumentosIngresoContext";
-import { CarpetaRetiroPovider } from "./context/gestion_humana/DocumentosRetiroContext";
-import { ComprasPovider } from "./context/compras/ComprasContext";
+import { WoocomercePovider } from "./context/Woocomerce/WoocomerceContext";
 import { PrimeReactProvider } from "primereact/api";
 
 import { locale, addLocale, updateLocaleOption, updateLocaleOptions, localeOption, localeOptions } from 'primereact/api';
@@ -56,21 +51,13 @@ addLocale('es', {
   return (
     <PrimeReactProvider value={value}>
       <LoginProvider>
-        <LogisticaProvider>
-          <VentasProvider>
-            <ComprasPovider>
-              <CarpetaActivoPovider>
-                <CarpetaIngresoPovider>
-                  <CarpetaRetiroPovider>
+        
                   <PedidosPovider>
+                  <WoocomercePovider>
                     <Login />
+                    </WoocomercePovider>
                     </PedidosPovider>
-                  </CarpetaRetiroPovider>
-                </CarpetaIngresoPovider>
-              </CarpetaActivoPovider>
-            </ComprasPovider>
-          </VentasProvider>
-        </LogisticaProvider>
+
       </LoginProvider>
     </PrimeReactProvider>
   );

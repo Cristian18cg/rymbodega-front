@@ -12,7 +12,7 @@ import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { InputSwitch } from "primereact/inputswitch";
 import { Tag } from "primereact/tag";
-import { Crear_pedido } from "../Crear_pedido";
+import { Crear_pedido } from "../Crear/Crear_pedido";
 import { PedidosRuta } from "./PedidosRuta";
 import { InputNumber } from "primereact/inputnumber";
 export const Rutas_entregador = ({
@@ -33,6 +33,7 @@ export const Rutas_entregador = ({
   } = useControl_Pedidos();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [numruta, setnumruta] = useState("");
+  const [baser, setbaser] = useState("");
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
@@ -334,7 +335,11 @@ export const Rutas_entregador = ({
 
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e;
-
+    if (rowData[field] === newValue) {
+      event.preventDefault(); // No hacer nada si el valor no cambia
+      return;
+    }
+    
     switch (field) {
       case "efectivo":
         if (isPositiveInteger(newValue)) {
@@ -394,6 +399,7 @@ export const Rutas_entregador = ({
             agregar={true}
             docentregador={documento}
             numruta={numruta}
+            baser={baser}
           ></Crear_pedido>
         </Dialog>
         <DataTable
@@ -459,6 +465,7 @@ export const Rutas_entregador = ({
                   style={{ color: "blue" }}
                   onClick={() => {
                     setnumruta(data.numero_ruta);
+                    setbaser(data.pedidos[0]?.base)
                     setVisibleagregar(true);
                   }}
                 ></a>

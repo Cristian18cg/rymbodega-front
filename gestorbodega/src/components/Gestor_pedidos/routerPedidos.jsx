@@ -2,10 +2,11 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import "../../styles/gestion_talento/styles_talento.css";
 import Header from "./header"
-import {Crear_entregador} from './Crear_entregador'
+import {Crear_entregador} from './Crear/Crear_entregador'
 import {Lista_entregas} from './Lista_entregas'
 import {Historico_Entregas} from './historico_entregas/Historico_Entregas'
 import useControl from '../../hooks/useControl'
+import { ListaProductos } from "./Woocomerce/ListaProductos";
 const RouterPedidos = () => {
     const {jsonlogin} = useControl()
     return (<>
@@ -18,6 +19,7 @@ const RouterPedidos = () => {
                  <Route path="crear/entregador" element={<Crear_entregador  />} />
                  <Route path="lista/entregas" element={<Lista_entregas  />} />
                  <Route path="lista/historico_entregas" element={<Historico_Entregas  />} />
+                 <Route path="woocomerce/productos" element={<ListaProductos  />} />
             </Routes>
         </Router>     
     

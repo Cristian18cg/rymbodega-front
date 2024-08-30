@@ -12,9 +12,6 @@ import { useState, useEffect } from "react";
 import { ListBox } from "primereact/listbox";
 import { TabMenu } from "primereact/tabmenu";
 import { debounce } from "lodash";
-import useControl_Contrato_Activo from "../../hooks/useControl_Contrato_Activo";
-import useControl_Documentos_Retiro from "../../hooks/useControl_Documentos_Retiro";
-import useControl_DocumentosIngreso from "../../hooks/useControl_DocumentosIngreso";
 const Header = () => {
   const navigate = useNavigate();
   const { logout, usuario, jsonlogin } = useControl();
@@ -27,26 +24,14 @@ const Header = () => {
   const [notificacion3, setNotificacion3] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
  
-  const {
-    RegistrosNotificacionIngreso,
-    notificacionDocIngreso,
-    setfiltoGlobalIngreso,
-    RegistrosComentarios
-  } = useControl_DocumentosIngreso();
+  const onClickLogout = () => {
+    navigate("/");
+    logout(jsonlogin.id);
+  };
 
-  const {
-    RegistrosNotificacionActivo,
-    notificacionDocActivos,
-    setfiltroGlobal,
-    RegistrosComentariosActivo,
-  } = useControl_Contrato_Activo();
+ 
+/* 
 
-  const {
-    RegistrosNotificacionRetiro,
-    notificacionDocRetiro,
-    setfiltroGlobalRetiro,
-    RegistrosComentariosRetiro
-  } = useControl_Documentos_Retiro();
   const baseURL = process.env.REACT_APP_BASE_URL
   const baseURLWithoutHttp = baseURL.replace('http://', '');
   useEffect(() => {
@@ -91,28 +76,21 @@ const Header = () => {
     };
   }, []);
 
-  useEffect(() => {
-    setRegistros(notificacionDocIngreso);
-    setRegistros2(notificacionDocActivos);
-    setRegistros3(notificacionDocRetiro);
-  }, [notificacionDocIngreso, notificacionDocActivos, notificacionDocRetiro]);
 
-  const onClickLogout = () => {
-    navigate("/");
-    logout(jsonlogin.id);
-  };
+
+  
 
   const delayedRequest = debounce(() => {
 /*     RegistrosNotificacionActivo();
     RegistrosNotificacionRetiro();
     RegistrosNotificacionIngreso(); */
-  }, 500);
+/*   }, 500); */
 
-  useEffect(() => {
+/*   useEffect(() => {
     delayedRequest();
-  }, []);
+  }, []); */ 
 
-  useEffect(() => {
+/*   useEffect(() => {
     const buscarRegistrosingreso = () => {
       const mensajes = [];
       registros?.data.forEach((elemento) => {
@@ -173,7 +151,7 @@ const Header = () => {
       buscarRegistrosRetiro();
     }
     // Llama a la función asincrónica para obtener los datos
-  }, [registros, registros2, registros3]);
+  }, [registros, registros2, registros3]); */
 
   const headernotificaciones = () => {
     return (
@@ -295,8 +273,12 @@ const Header = () => {
                     <NavDropdown.Item as={Link} to="/lista/historico_entregas">
                       <i className="pi pi-address-book " /> Historico entregas
                     </NavDropdown.Item>
-                    
-            
+                </NavDropdown>
+                {/* Woocomerce */}
+                <NavDropdown id="basic-nav-dropdown" title="Woocomerce">
+                  <NavDropdown.Item as={Link} to="/woocomerce/productos">
+                      <i className="pi pi-products" /> Productos
+                    </NavDropdown.Item>
                 </NavDropdown>
 
                 <i className="bi-person-circle mi-icono "></i>
@@ -310,7 +292,7 @@ const Header = () => {
                 </NavDropdown>
               </Nav>
             </Navbar.Collapse>
-            <Sidebar
+            {/* <Sidebar
               visible={visible}
               onHide={() => setVisible(false)}
               className="side-noti"
@@ -366,7 +348,7 @@ const Header = () => {
               ) : (
                 <></>
               )}
-            </Sidebar>
+            </Sidebar> */}
           </Container>
         </Navbar>
       

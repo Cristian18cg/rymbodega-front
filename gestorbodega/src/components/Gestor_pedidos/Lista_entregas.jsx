@@ -11,7 +11,7 @@ import { InputIcon } from "primereact/inputicon";
 import { debounce } from "lodash";
 import { Dialog } from "primereact/dialog";
 import { Knob } from "primereact/knob";
-import { Crear_pedido } from "./Crear_pedido";
+import { Crear_pedido } from "./Crear/Crear_pedido";
 import {Rutas_entregador} from './Tabla_rutas/RutasEntregador'
 export const Lista_entregas = () => {
   const {
