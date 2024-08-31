@@ -16,6 +16,8 @@ import { Tag } from "primereact/tag";
 import { InputNumber } from "primereact/inputnumber";
 import { Menubar } from "primereact/menubar";
 import { MultiSelect } from "primereact/multiselect";
+import Swal from "sweetalert2";
+
 export const ListaProductos = () => {
   const {
     listaProductos,

@@ -26,7 +26,7 @@ export const Crear_pedido = ({
   const [tipoVehiculo, setTipoVehiculo] = useState("");
   const [numeroRuta, setNumeroRuta] = useState("");
   const [base, setBase] = useState(0);
-  const [formattedBase, setFormattedBase] = useState("");
+  const [formattedBase, setFormattedBase] = useState(0);
   const [acompanantes, setAcompanantes] = useState([]);
   const [acompañante, setAcompañante] = useState("");
   const [pedidos, setPedidos] = useState([
@@ -226,7 +226,7 @@ export const Crear_pedido = ({
       ...pedidos,
       {
         numeroRuta: numeroRuta,
-        base: base,
+        base: (base,0),
         valorPedido: "",
         numeroFactura: "",
         tipoPedido: "Tienda",
