@@ -9,17 +9,15 @@ import { InputText } from "primereact/inputtext";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { debounce } from "lodash";
-import { Chart } from 'primereact/chart';
+import { Chart } from "primereact/chart";
+import { MultiSelect } from "primereact/multiselect";
 export const Historico_Entregas = () => {
-  const {
-    historico_entregas,
-    Listahistorico,
-
-  } = useControl_Pedidos();
-  const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const { historico_entregas, Listahistorico } = useControl_Pedidos();
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
+  const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const [filtroFecha, setFiltroFecha] = useState();
   const delayedRequest = debounce(() => {
     if (Listahistorico?.length === 0) {
       historico_entregas();
@@ -29,6 +27,10 @@ export const Historico_Entregas = () => {
     // Llama a la función asincrónica para obtener los datos
     delayedRequest();
   }, []);
+  useEffect(() => {
+    // Llama a la función asincrónica para obtener los datos
+ console.log(filtroFecha);
+  }, [filtroFecha]);
   /* limpia filtros */
   const clearFilter = () => {
     /*  setFilters(null); */ // Puedes establecer el filtro como null para borrarlo
@@ -79,6 +81,64 @@ export const Historico_Entregas = () => {
     setFilters(_filters);
     setGlobalFilterValue(value);
   };
+  const fechasFil = [
+    { name: "Hoy", rango : "Hoy" },
+    { name: "Mes pasado", rango: "Mes pasado" },
+    { name: "Rango", rango: "Rango" },
+    { name: "Trimestre", rango: "Trimestre" },
+    { name: "Semestre", rango: "Semestre" },
+  ];
+
+  const obtenerRangoFechas = (rango) => {
+    const hoy = new Date();
+    let fechaInicio;
+    let fechaFin = hoy;
+  
+    switch (rango) {
+      case "Hoy":
+        // Hoy
+        fechaInicio = hoy;
+        fechaFin = hoy;
+        break;
+      case "Mes pasado":
+        // Mes pasado
+        fechaInicio = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+        fechaFin = new Date(hoy.getFullYear(), hoy.getMonth(), 0); // Último día del mes pasado
+        break;
+      case "Rango":
+        // Rango personalizado, aquí puedes agregar tu lógica personalizada
+        fechaInicio = null;
+        fechaFin = null;
+        break;
+      case "Trimestre":
+        // Trimestre pasado
+        const mesActual = hoy.getMonth();
+        const trimestreActual = Math.floor((mesActual + 3) / 3);
+        fechaInicio = new Date(hoy.getFullYear(), (trimestreActual - 2) * 3, 1); // Inicio del trimestre pasado
+        fechaFin = new Date(hoy.getFullYear(), (trimestreActual - 1) * 3, 0); // Fin del trimestre pasado
+        break;
+      default:
+        fechaInicio = null;
+        fechaFin = null;
+        break;
+    }
+  
+    return {
+      fechaInicio: fechaInicio ? fechaInicio.toISOString().split('T')[0] : null,
+      fechaFin: fechaFin ? fechaFin.toISOString().split('T')[0] : null
+    };
+  };
+  
+  const funcionFiltrar = () => {
+    console.log(filtroFecha[0].name);
+    const fecha = obtenerRangoFechas(filtroFecha[0].name);
+    historico_entregas(fecha.fechaInicio, fecha.fechaFin);
+  };
+ const isDisabled = () => {
+  // Verifica si cada objeto en el array tiene las propiedades 'name' y 'rango' definidas
+  return filtroFecha?.length === 0 || filtroFecha?.some(filtro => !filtro.name || !filtro.rango);
+};
+
   const renderHeader = () => {
     return (
       <Navbar expand="md" variant="dark" className="p-header-datatable2 ">
@@ -109,6 +169,27 @@ export const Historico_Entregas = () => {
 
             <Nav className="mr-sm-2">
               <div className="d-flex align-items-center">
+                <MultiSelect
+                  value={filtroFecha}
+                  onChange={(e) => setFiltroFecha(e.value)}
+                  options={fechasFil}
+                  placeholder="Seleccione filtro de fecha"
+                  selectAll={false}
+                  selectionLimit={1}
+                  optionLabel="name"
+                  display="chip"
+                />
+                <Button
+                disabled={isDisabled()}
+                  type="button"
+                  icon="pi pi-filter"
+                  label="Filtrar"
+                  outlined
+                  className="btn btn-outline-primary color-icon "
+                  onClick={() => {
+                  funcionFiltrar()
+                  }}
+                />
                 <Button
                   type="button"
                   icon="pi pi-refresh"
@@ -139,46 +220,49 @@ export const Historico_Entregas = () => {
   const [chartOptions, setChartOptions] = useState({});
 
   useEffect(() => {
- 
     const options = {
-        plugins: {
-            legend: {
-                labels: {
-                    usePointStyle: true
-                }
-            }
-        }
+      plugins: {
+        legend: {
+          labels: {
+            usePointStyle: true,
+          },
+        },
+      },
     };
 
     setChartOptions(options);
-}, []);
-const datafuntion = (dato1,dato2)=>{
+  }, []);
+  const datafuntion = (dato1, dato2) => {
     const documentStyle = getComputedStyle(document.documentElement);
     const data = {
-        labels: ['Tiendas', 'Mayoristas'],
-        datasets: [
-            {
-                data: [dato1, dato2],
-                backgroundColor: [
-                    documentStyle.getPropertyValue('--blue-500'), 
-                    documentStyle.getPropertyValue('--yellow-500'), 
-                ],
-                hoverBackgroundColor: [
-                    documentStyle.getPropertyValue('--blue-400'), 
-                    documentStyle.getPropertyValue('--yellow-400'), 
-                ]
-            }
-        ]
-    }
-    return data
-}
+      labels: ["Tiendas", "Mayoristas"],
+      datasets: [
+        {
+          data: [dato1, dato2],
+          backgroundColor: [
+            documentStyle.getPropertyValue("--blue-500"),
+            documentStyle.getPropertyValue("--yellow-500"),
+          ],
+          hoverBackgroundColor: [
+            documentStyle.getPropertyValue("--blue-400"),
+            documentStyle.getPropertyValue("--yellow-400"),
+          ],
+        },
+      ],
+    };
+    return data;
+  };
 
-
-  const grafica=(rowData)=>{
+  const grafica = (rowData) => {
     return (
-            <Chart type="pie" data={datafuntion(rowData.tiendas,rowData.mayoristas)} options={setChartOptions}    style={{ maxWidth: "10rem" }}/>
-    )
-  }
+      <Chart
+        type="pie"
+        data={datafuntion(rowData.tiendas, rowData.mayoristas)}
+        options={setChartOptions}
+        style={{ maxWidth: "10rem" }}
+      />
+    );
+  };
   return (
     <div className="row">
       <div className="col-md-12 ">
@@ -201,34 +285,48 @@ const datafuntion = (dato1,dato2)=>{
             field="entregador"
             header="Nombre Completo"
           />
-          <Column sortable
-           header="Total pedidos" field="total_pedidos" />
-          <Column sortable header="Total acompañado" field="acompanado"  />
-          <Column sortable header="Total mayorista" field="valor_mayoristas" body={(rowData) =>
-            new Intl.NumberFormat("es-CO", {
-              style: "currency",
-              currency: "COP",
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(rowData.valor_mayoristas)
-          }  />
-          <Column  sortable header="Total tiendas" field="valor_tiendas" body={(rowData) =>
-            new Intl.NumberFormat("es-CO", {
-              style: "currency",
-              currency: "COP",
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(rowData.valor_tiendas)
-          }  />
-          <Column  sortable header="Total valor" field="total_valor"    body={(rowData) =>
-            new Intl.NumberFormat("es-CO", {
-              style: "currency",
-              currency: "COP",
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(rowData.total_valor)
-          } />
-          <Column header="Pedidos" body={grafica}  />
+          <Column sortable header="Total pedidos" field="total_pedidos" />
+          <Column sortable header="Total acompañado" field="acompanado" />
+          <Column
+            sortable
+            header="Total mayorista"
+            field="valor_mayoristas"
+            body={(rowData) =>
+              new Intl.NumberFormat("es-CO", {
+                style: "currency",
+                currency: "COP",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(rowData.valor_mayoristas)
+            }
+          />
+          <Column
+            sortable
+            header="Total tiendas"
+            field="valor_tiendas"
+            body={(rowData) =>
+              new Intl.NumberFormat("es-CO", {
+                style: "currency",
+                currency: "COP",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(rowData.valor_tiendas)
+            }
+          />
+          <Column
+            sortable
+            header="Total valor"
+            field="total_valor"
+            body={(rowData) =>
+              new Intl.NumberFormat("es-CO", {
+                style: "currency",
+                currency: "COP",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(rowData.total_valor)
+            }
+          />
+          <Column header="Pedidos" body={grafica} />
         </DataTable>
       </div>
     </div>
