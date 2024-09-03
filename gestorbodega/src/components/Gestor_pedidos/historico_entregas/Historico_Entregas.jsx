@@ -309,7 +309,7 @@ export const Historico_Entregas = () => {
       />
     );
   };
-  const footer = `Fecha filtrada (${Listahistorico.rango_fechas.fecha_inicio})-(${Listahistorico.rango_fechas.fecha_fin})`;
+  const footer = `Fecha filtrada (${Listahistorico?.rango_fechas?.fecha_inicio})-(${Listahistorico?.rango_fechas?.fecha_fin})`;
 
   return (
     <div className="row">
