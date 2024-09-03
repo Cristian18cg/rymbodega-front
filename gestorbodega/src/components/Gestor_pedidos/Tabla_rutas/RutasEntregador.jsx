@@ -154,7 +154,7 @@ export const Rutas_entregador = ({
     // Filtra los pedidos que pertenecen a la ruta específica
     const pedidosRuta = data.pedidos;
     // Calcula el total de valores de los pedidos
-  
+
     const total = new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
@@ -235,7 +235,8 @@ export const Rutas_entregador = ({
     );
     // Calcula el total faltante
 
-    const totalFaltante = totalPedidos - totalTransferencia - totaldevolucion- totalefectivo;
+    const totalFaltante =
+      totalPedidos - totalTransferencia - totaldevolucion - totalefectivo;
     const total = new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
@@ -276,10 +277,10 @@ export const Rutas_entregador = ({
     const porcentajeCompletado =
       totalPedidos > 0 ? (pedidosSumados / totalPedidos) * 100 : 0;
     const porcentajeRedondeado = Math.round(porcentajeCompletado);
-  
+
     // Determina la clase de progreso basada en la combinación de estados de pedidos
     let progressBarClass = "progressbarpedidos";
-  
+
     if (pedidosConCredito === totalPedidos) {
       // Todos los pedidos son con crédito
       progressBarClass = "progressbarCredito";
@@ -290,12 +291,9 @@ export const Rutas_entregador = ({
       // Hay una combinación de pedidos completados y pedidos con crédito
       progressBarClass = "progressbarMixto";
     }
-  
+
     return (
-      <ProgressBar
-        value={porcentajeRedondeado}
-        className={progressBarClass}
-      />
+      <ProgressBar value={porcentajeRedondeado} className={progressBarClass} />
     );
   };
 
@@ -339,12 +337,30 @@ export const Rutas_entregador = ({
       event.preventDefault(); // No hacer nada si el valor no cambia
       return;
     }
-    
+
     switch (field) {
       case "efectivo":
         if (isPositiveInteger(newValue)) {
-           actualizar_pedidos(rowData.pedidos[0].id, 'efectivo', newValue, documento,true, rowData.numero_ruta);
-
+          actualizar_pedidos(
+            rowData.pedidos[0].id,
+            "efectivo",
+            newValue,
+            documento,
+            true,
+            rowData.numero_ruta
+          );
+        } else event.preventDefault();
+        break;
+      case "base":
+        if (isPositiveInteger(newValue)) {
+          actualizar_pedidos(
+            rowData.pedidos[0].id,
+            "base",
+            newValue,
+            documento,
+            true,
+            rowData.numero_ruta
+          );
         } else event.preventDefault();
         break;
       default:
@@ -441,6 +457,8 @@ export const Rutas_entregador = ({
             field="base"
             header="Base"
             body={valorbase}
+            editor={(options) => cellEditor(options)}
+            onCellEditComplete={onCellEditComplete}
           />
           <Column header="$ Transferencias" body={valortransferencias} />
           <Column header="$ devuelto" body={valordevuelto} />
@@ -465,7 +483,7 @@ export const Rutas_entregador = ({
                   style={{ color: "blue" }}
                   onClick={() => {
                     setnumruta(data.numero_ruta);
-                    setbaser(data.pedidos[0]?.base)
+                    setbaser(data.pedidos[0]?.base);
                     setVisibleagregar(true);
                   }}
                 ></a>

@@ -52,98 +52,6 @@ export const Crear_pedido = ({
   const [errores2, setErrores2] = useState({});
   const [error, setError] = useState(false);
   const [errorRuta, setErrorRuta] = useState(false);
-  /* Toast de mensajes fallidos */
-  const showError = (error) => {
-    const Toast = Swal.mixin({
-      toast: true,
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 3000,
-      background: "#f3f2e8f1",
-      color: "black",
-      timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.onmouseenter = Swal.stopTimer;
-        toast.onmouseleave = Swal.resumeTimer;
-      },
-    });
-    Toast.fire({
-      icon: "error",
-      title: error ? error : "¡Ha ocurrido un error!",
-      buttonsStyling: false,
-    });
-  };
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    // Validar tipo vehiculo
-    const erroresTemp = {};
-    const erroresTemp2 = {};
-    if (!tipoVehiculo.trim()) {
-      erroresTemp.tipoVehiculo = "El vehiculo predeterminado es requerido";
-    }
-    // Validar nombre
-
-    if (!nombre.trim()) {
-      erroresTemp.nombre = "El nombre es requerido";
-    } else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(nombre)) {
-      erroresTemp.nombre = "El nombre solo puede contener letras";
-    }
-    // Validar apellidos
-    if (!apellidos.trim()) {
-      erroresTemp.apellidos = "Los apellidos son requeridos";
-    } else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(apellidos)) {
-      erroresTemp.apellidos = "Los apellidos solo pueden contener letras";
-    }
-    // Validar documento
-    if (!documento.trim()) {
-      erroresTemp.documento = "El numero de documento es requerido";
-    } else if (documento.length < 6 || documento.length > 15) {
-      erroresTemp.documento =
-        "El numero de documento debe tener entre 4 y 15 numeros";
-    }
-    pedidos.forEach((pedido, index) => {
-      if (!pedido.valorPedido.trim()) {
-        console.log("errores" + index);
-        erroresTemp2[index] = "El valor del pedido es requerido";
-      }
-    });
-    setErrores2(erroresTemp2); //asignamos los mensajes al error temporal
-
-    if (
-      form.checkValidity() === false ||
-      Object.keys(erroresTemp).length > 0 ||
-      Object.keys(erroresTemp2).length > 0
-    ) {
-      // Si hay errores, no se envía el formulario.
-      showError(
-        `No se ha podido crear la ruta debido a errores en los campos o campos incompletos.`
-      );
-
-      event.stopPropagation();
-      setValidated(true);
-      return;
-    }
-    // Aplicar numeroRuta a todos los pedidos
-    const pedidosConNumeroRuta = pedidos.map((pedido) => ({
-      ...pedido,
-      numeroRuta,
-      base
-    }));
-
-    try {
-      CrearPedido(
-        { nombre, documento, tipoVehiculo, acompañante, acompanado },
-        pedidosConNumeroRuta,
-        agregar
-      );
-    } catch (error) {
-      showError("Ah ocurrido un error al crear la carpeta: \n" + error);
-      // Manejar errores de solicitud
-      console.error("Error al guardar datos y archivos:", error);
-      // Manejar el error en el componente principal si es necesario
-    }
-  };
 
   useEffect(() => {
     if (agregar) {
@@ -178,6 +86,112 @@ export const Crear_pedido = ({
       setAcompañante("");
     }
   }, [acompanado]);
+
+  useEffect(() => {
+    const funcionRuta = () => {
+      const ultimoPedido = pedidos[pedidos.length - 1];
+      if (!numeroRuta || !ultimoPedido.valorPedido) {
+        setErrorRuta(true);
+      } else {
+        setErrorRuta(false);
+      }
+    };
+    funcionRuta();
+  }, [numeroRuta, pedidos]);
+
+    /* Toast de mensajes fallidos */
+    const showError = (error) => {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        background: "#f3f2e8f1",
+        color: "black",
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.onmouseenter = Swal.stopTimer;
+          toast.onmouseleave = Swal.resumeTimer;
+        },
+      });
+      Toast.fire({
+        icon: "error",
+        title: error ? error : "¡Ha ocurrido un error!",
+        buttonsStyling: false,
+      });
+    };
+    const handleSubmit = async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      // Validar tipo vehiculo
+      const erroresTemp = {};
+      const erroresTemp2 = {};
+      if (!tipoVehiculo.trim()) {
+        erroresTemp.tipoVehiculo = "El vehiculo predeterminado es requerido";
+      }
+      // Validar nombre
+  
+      if (!nombre.trim()) {
+        erroresTemp.nombre = "El nombre es requerido";
+      } else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(nombre)) {
+        erroresTemp.nombre = "El nombre solo puede contener letras";
+      }
+      // Validar apellidos
+      if (!apellidos.trim()) {
+        erroresTemp.apellidos = "Los apellidos son requeridos";
+      } else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(apellidos)) {
+        erroresTemp.apellidos = "Los apellidos solo pueden contener letras";
+      }
+      // Validar documento
+      if (!documento.trim()) {
+        erroresTemp.documento = "El numero de documento es requerido";
+      } else if (documento.length < 6 || documento.length > 15) {
+        erroresTemp.documento =
+          "El numero de documento debe tener entre 4 y 15 numeros";
+      }
+      pedidos.forEach((pedido, index) => {
+        if (!pedido.valorPedido.trim()) {
+          console.log("errores" + index);
+          erroresTemp2[index] = "El valor del pedido es requerido";
+        }
+      });
+      setErrores2(erroresTemp2); //asignamos los mensajes al error temporal
+  
+      if (
+        form.checkValidity() === false ||
+        Object.keys(erroresTemp).length > 0 ||
+        Object.keys(erroresTemp2).length > 0
+      ) {
+        // Si hay errores, no se envía el formulario.
+        showError(
+          `No se ha podido crear la ruta debido a errores en los campos o campos incompletos.`
+        );
+  
+        event.stopPropagation();
+        setValidated(true);
+        return;
+      }
+      // Aplicar numeroRuta a todos los pedidos
+      const pedidosConNumeroRuta = pedidos.map((pedido) => ({
+        ...pedido,
+        numeroRuta,
+        base
+      }));
+  
+      try {
+        CrearPedido(
+          { nombre, documento, tipoVehiculo, acompañante, acompanado },
+          pedidosConNumeroRuta,
+          agregar
+        );
+      } catch (error) {
+        showError("Ah ocurrido un error al crear la carpeta: \n" + error);
+        // Manejar errores de solicitud
+        console.error("Error al guardar datos y archivos:", error);
+        // Manejar el error en el componente principal si es necesario
+      }
+    };
+  
   // Manejo de cambios en los pedidos
   const handlePedidoChange = (index, field, value) => {
     const newPedidos = [...pedidos];
@@ -245,18 +259,7 @@ export const Crear_pedido = ({
       });
     }
   };
-  useEffect(() => {
-    const funcionRuta = () => {
-      const ultimoPedido = pedidos[pedidos.length - 1];
-      if (!numeroRuta || !ultimoPedido.valorPedido) {
-        setErrorRuta(true);
-      } else {
-        setErrorRuta(false);
-      }
-    };
-    funcionRuta();
-  }, [numeroRuta, pedidos]);
-
+ 
   const formatCurrency = (value) => {
     const numericValue = value?.toString().replace(/\D/g, ""); // Asegura que value es una cadena
     return new Intl.NumberFormat("es-CO", {
@@ -479,7 +482,7 @@ export const Crear_pedido = ({
                 {/* Numero de ruta y acompañante  */}
                 <Row className="mb-3">
                   {/* numero ruta */}
-                  <Col xs={12} md={6} className="mb-3">
+                  <Col xs={12} md={4} className="mb-3">
                     <Form.Group
                       as={Col}
                       controlId="numeroRuta"
@@ -506,7 +509,7 @@ export const Crear_pedido = ({
                     )}
                   </Col>
                   {/* base */}
-                  <Col xs={12} md={6} className="mb-3">
+                  <Col xs={12} md={4} className="mb-3">
                     <Form.Group
                       as={Col}
                       controlId="Base"
@@ -530,10 +533,10 @@ export const Crear_pedido = ({
                     </Form.Group>
                   </Col>
                   {/* Checkbox para indicar si va acompañado */}
-                  <Col xs={12} md={6} className="mb-3">
+                  <Col xs={12} md={4} className="mb-3">
                     <Form.Group
                       controlId="acompanado"
-                      className="form-control-gestion"
+                      className="form-control-gestion mt-3"
                     >
                       <Form.Check
                         type="checkbox"

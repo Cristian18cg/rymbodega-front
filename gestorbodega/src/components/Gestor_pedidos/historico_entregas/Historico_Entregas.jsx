@@ -9,6 +9,7 @@ import { InputText } from "primereact/inputtext";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { debounce } from "lodash";
+import { Calendar } from "primereact/calendar";
 import { Chart } from "primereact/chart";
 import { MultiSelect } from "primereact/multiselect";
 export const Historico_Entregas = () => {
@@ -18,6 +19,8 @@ export const Historico_Entregas = () => {
   });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filtroFecha, setFiltroFecha] = useState();
+  const [calendar, setcalendar] = useState(false);
+  const [dates, setDates] = useState(null);
   const delayedRequest = debounce(() => {
     if (Listahistorico?.length === 0) {
       historico_entregas();
@@ -28,8 +31,13 @@ export const Historico_Entregas = () => {
     delayedRequest();
   }, []);
   useEffect(() => {
+    console.log(filtroFecha);
     // Llama a la función asincrónica para obtener los datos
- console.log(filtroFecha);
+    if (filtroFecha?.some((filtro) => filtro.name === "Rango")) {
+      setcalendar(true);
+    } else {
+      setcalendar(false);
+    }
   }, [filtroFecha]);
   /* limpia filtros */
   const clearFilter = () => {
@@ -82,8 +90,9 @@ export const Historico_Entregas = () => {
     setGlobalFilterValue(value);
   };
   const fechasFil = [
-    { name: "Hoy", rango : "Hoy" },
+    { name: "Hoy", rango: "Hoy" },
     { name: "Mes pasado", rango: "Mes pasado" },
+    { name: "Este mes", rango: "Este mes" },
     { name: "Rango", rango: "Rango" },
     { name: "Trimestre", rango: "Trimestre" },
     { name: "Semestre", rango: "Semestre" },
@@ -93,12 +102,17 @@ export const Historico_Entregas = () => {
     const hoy = new Date();
     let fechaInicio;
     let fechaFin = hoy;
-  
+
     switch (rango) {
       case "Hoy":
         // Hoy
         fechaInicio = hoy;
         fechaFin = hoy;
+        break;
+      case "Este mes":
+        // Este mes
+        fechaInicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1); // Primer día del mes actual
+        fechaFin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0); // Último día del mes actual
         break;
       case "Mes pasado":
         // Mes pasado
@@ -117,27 +131,43 @@ export const Historico_Entregas = () => {
         fechaInicio = new Date(hoy.getFullYear(), (trimestreActual - 2) * 3, 1); // Inicio del trimestre pasado
         fechaFin = new Date(hoy.getFullYear(), (trimestreActual - 1) * 3, 0); // Fin del trimestre pasado
         break;
+      case "Semestre":
+        // Semestre pasado
+        const mesInicioSemestre = hoy.getMonth() < 6 ? 0 : 6; // Determinar si el semestre es la primera mitad o la segunda mitad del año
+        const añoSemestre =
+          hoy.getMonth() < 6 ? hoy.getFullYear() - 1 : hoy.getFullYear(); // Ajustar el año si estamos en la primera mitad del año
+        fechaInicio = new Date(añoSemestre, mesInicioSemestre, 1); // Inicio del semestre pasado
+        fechaFin = new Date(añoSemestre, mesInicioSemestre + 5, 0); // Fin del semestre pasado
+        break;
       default:
         fechaInicio = null;
         fechaFin = null;
         break;
     }
-  
+
     return {
-      fechaInicio: fechaInicio ? fechaInicio.toISOString().split('T')[0] : null,
-      fechaFin: fechaFin ? fechaFin.toISOString().split('T')[0] : null
+      fechaInicio: fechaInicio ? fechaInicio.toISOString().split("T")[0] : null,
+      fechaFin: fechaFin ? fechaFin.toISOString().split("T")[0] : null,
     };
   };
-  
+
   const funcionFiltrar = () => {
     console.log(filtroFecha[0].name);
-    const fecha = obtenerRangoFechas(filtroFecha[0].name);
-    historico_entregas(fecha.fechaInicio, fecha.fechaFin);
+    if (filtroFecha?.some((filtro) => filtro.name === "Rango")) {
+      console.log(dates[0]);
+      historico_entregas(dates[0].toISOString().split("T")[0] , dates[1].toISOString().split("T")[0] );
+    } else {
+      const fecha = obtenerRangoFechas(filtroFecha[0].name);
+      historico_entregas(fecha.fechaInicio, fecha.fechaFin);
+    }
   };
- const isDisabled = () => {
-  // Verifica si cada objeto en el array tiene las propiedades 'name' y 'rango' definidas
-  return filtroFecha?.length === 0 || filtroFecha?.some(filtro => !filtro.name || !filtro.rango);
-};
+  const isDisabled = () => {
+    // Verifica si cada objeto en el array tiene las propiedades 'name' y 'rango' definidas
+    return (
+      filtroFecha?.length === 0 ||
+      filtroFecha?.some((filtro) => !filtro.name || !filtro.rango)
+    );
+  };
 
   const renderHeader = () => {
     return (
@@ -179,15 +209,31 @@ export const Historico_Entregas = () => {
                   optionLabel="name"
                   display="chip"
                 />
+                <Calendar
+                  visible={calendar}
+                  value={dates}
+                  onChange={(e) => setDates(e.value)}
+                  selectionMode="range"
+                  readOnlyInput
+                  maxDate={new Date()}
+                  hideOnRangeSelection
+                  style={{ maxWidth: "15vw" }}
+                  className={calendar ? "mx-2" : "d-none"}
+                  showButtonBar
+                  locate="es"
+                  showIcon
+                  placeholder="Rango de fecha"
+                />
+
                 <Button
-                disabled={isDisabled()}
+                  disabled={isDisabled()}
                   type="button"
                   icon="pi pi-filter"
                   label="Filtrar"
                   outlined
                   className="btn btn-outline-primary color-icon "
                   onClick={() => {
-                  funcionFiltrar()
+                    funcionFiltrar();
                   }}
                 />
                 <Button
@@ -263,6 +309,8 @@ export const Historico_Entregas = () => {
       />
     );
   };
+  const footer = `Fecha filtrada (${Listahistorico.rango_fechas.fecha_inicio})-(${Listahistorico.rango_fechas.fecha_fin})`;
+
   return (
     <div className="row">
       <div className="col-md-12 ">
@@ -270,7 +318,7 @@ export const Historico_Entregas = () => {
           rows={10}
           paginator
           rowsPerPageOptions={[10, 20, 50]}
-          value={Listahistorico}
+          value={Listahistorico.data}
           header={renderHeader()}
           filters={filters}
           globalFilterFields={["nombres", "documento", "apellidos"]}
@@ -278,6 +326,7 @@ export const Historico_Entregas = () => {
           scrollable
           tableStyle={{ minWidth: "50rem" }}
           removableSort
+          footer={footer}
         >
           <Column
             style={{ minWidth: "10rem" }}

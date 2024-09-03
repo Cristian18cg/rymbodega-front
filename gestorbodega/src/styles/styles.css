@@ -1,7 +1,7 @@
 ::placeholder {
   color: #6c757d; /* Color de texto deseado */
   font-style: italic; /* Estilo de fuente deseado, por ejemplo, cursiva */
-  font-size: 12px
+  font-size: 10px
 }
 .nav{
 background-color: #e3f2fd;
@@ -324,14 +324,15 @@ div::-webkit-scrollbar-thumb {
   width: 100%;
 }
 .p-datepicker-trigger {
-  background-color: #e6c115!important;
-  color: #000;
-  border-color: #d4af0a;
+  background-color: #e62315!important;
+  color: #ffffff;
+  border-color: #e62315;
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
+  font-size: 2vh;
 }
 .p-datepicker-trigger:hover {
-  box-shadow: 0px 0px 6px #dfc419 ;
+  box-shadow: 0px 0px 6px #e73a3a ;
 
 }
 

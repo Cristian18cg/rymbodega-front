@@ -60,7 +60,7 @@ min-width: 100%;
 }
 .card-gestion{
 border: none;
-min-width: 100%;
+align-items: center;
 }
 
 
@@ -144,9 +144,9 @@ border-color: #00000021;
 }
 
 input[type="file"]::-webkit-file-upload-button {
-font-size: 0.8em;
-width: 4.9rem;
-height: 2.4rem;
+font-size: 0.5em;
+width: 4.5rem;
+height: 2rem;
 background-color: rgba(39, 33, 4, 0.164);
 }
 
@@ -166,6 +166,7 @@ background-color: rgba(39, 33, 4, 0.164);
 box-shadow: 0 0 0.2rem rgb(156, 22, 1) !important;
 border-color: #ff0000 !important;
 background-color: #ffffff;
+
 }
 
 
@@ -177,11 +178,15 @@ background-color: #ffffff;
 
 .form-control-gestion{
   align-items: center;
+  font-size: 14px;
+}
+.form-control-gestion input{
+ padding: 0.5rem .5rem ;
 }
 
 .form-control-gestion option::selection{
-  background-color: #dfc419!important;
-  color: #000000!important;
+  background-color: #df2019!important;
+  color: #ffffff!important;
 }
 @media (max-width: 768px) {
   .formulario-container {
@@ -309,20 +314,21 @@ background-color: #2c2c2a09;
 .ui-inputtext:hover {
 border-color: rgb(226, 151, 1) !important;
 }
-.p-inputtext.p-input-icon-left:hover:active{ border-color: rgb(226, 151, 1) !important;
+
+.p-inputtext.p-input-icon-left:hover:active{ border-color: rgb(255, 16, 16) !important;
 }
 .p-inputtext:enabled:hover:active {
-border-color: rgb(226, 151, 1) !important;
+border-color: rgb(221, 11, 11) !important;
 box-shadow: 0 0 5px #dfc419 !important;
 
 }
 .p-inputtext:enabled:focus{
 
-box-shadow: 0 0 5px #dfc419 !important;
+box-shadow: 0 0 5px #eb3110 !important;
 border-color: rgb(172, 117, 8)!important;
 outline:#000000;
 }
-.p-tolltip-active.p-tooltip-right.p-tolltip{ border-color: rgb(172, 117, 8)!important}
+.p-tolltip-active.p-tooltip-right.p-tolltip{ border-color: rgb(196, 86, 86)!important}
 .stripedRows {
 background-color: #333; /* Cambia el color a uno más oscuro según tus preferencias */
 /* Otros estilos si los tienes */
