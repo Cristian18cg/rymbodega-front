@@ -48,7 +48,7 @@ export const Historico_Entregas = () => {
 
   const exportExcel = () => {
     import("xlsx").then((xlsx) => {
-      const worksheet = xlsx.utils.json_to_sheet(Listahistorico);
+      const worksheet = xlsx.utils.json_to_sheet(Listahistorico.data);
       const workbook = {
         Sheets: { data: worksheet },
         SheetNames: ["data"],
@@ -58,7 +58,7 @@ export const Historico_Entregas = () => {
         type: "array",
       });
 
-      saveAsExcelFile(excelBuffer, "Historico entregas");
+      saveAsExcelFile(excelBuffer,  `Lista entregas (${Listahistorico?.rango_fechas?.fecha_inicio})-(${Listahistorico?.rango_fechas?.fecha_fin})`);
     });
   };
   /* guarda el excel */

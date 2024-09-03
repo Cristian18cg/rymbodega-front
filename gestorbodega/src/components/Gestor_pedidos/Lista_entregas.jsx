@@ -196,7 +196,7 @@ export const Lista_entregas = () => {
             setVisibleRutaEntregador(false);
           }}
           maximizable
-          style={{ width: "80vw", height: "90vh"  }}
+          style={{ width: "90vw", height: "90vh"  }}
         >
           <Rutas_entregador documento={DocEntregador} nombreentregador={nomEntregador} Entregadores={EntregadoresTotal}/>
         </Dialog>
