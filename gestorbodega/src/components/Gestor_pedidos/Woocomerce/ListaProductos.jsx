@@ -9,14 +9,12 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
-import { Dialog } from "primereact/dialog";
-import { ProgressBar } from "primereact/progressbar";
-import { InputSwitch } from "primereact/inputswitch";
 import { Tag } from "primereact/tag";
 import { InputNumber } from "primereact/inputnumber";
 import { Menubar } from "primereact/menubar";
 import { MultiSelect } from "primereact/multiselect";
 import Swal from "sweetalert2";
+import { Skeleton } from "primereact/skeleton";
 
 export const ListaProductos = () => {
   const {
@@ -161,7 +159,7 @@ export const ListaProductos = () => {
       <Button
         type="button"
         icon="pi pi-filter-slash"
-        label="Clear"
+        label="Limpiar"
         outlined
         className="btn btn-outline-primary color-icon "
         onClick={clearFilter}
@@ -177,9 +175,22 @@ export const ListaProductos = () => {
       </IconField>
     </div>
   );
+  const end = (
+    <div className="d-flex ">
+      <Button
+        type="button"
+        icon="pi pi-refresh"
+        outlined
+        className="btn btn-outline-primary color-icon p-1"
+        onClick={ListarProductos}
+      />
+    </div>
+  );
 
   const header = () => {
-    return <Menubar start={start} className="p-header-datatable2 " />;
+    return (
+      <Menubar start={start} end={end} className="p-header-datatable2  " />
+    );
   };
   const isPositiveInteger = (val) => {
     let str = String(val); // Convertir el valor a cadena
@@ -341,95 +352,147 @@ export const ListaProductos = () => {
       />
     );
   };
+  const items = Array.from({ length: 15 }, (v, i) => i);
+
   return (
     <div className="row">
-      <div className="col-md-12 ">
-        <DataTable
-          header={header}
-          rows={10}
-          paginator
-          rowsPerPageOptions={[10, 20, 50]}
-          value={listaProductos}
-          filters={filters}
-          globalFilterFields={["name", "price", "categories.name"]}
-          emptyMessage="No se encontraron rutas"
-          scrollable
-          tableStyle={{ minWidth: "50rem" }}
-          removableSort
-          editMode="cell"
-        >
-          <Column
-            style={{ minWidth: "0.5rem" }}
-            sortable
-            field="sku"
-            header="SKU"
-            editor={(options) => cellEditor(options)}
-            onCellEditComplete={onCellEditComplete}
-            body={(data) => {
-              return data.sku ? data.sku : "no tiene";
-            }}
-          />
+      {listaProductos.length > 0 ? (
+        <div className="col-md-12 ">
+          <DataTable
+            header={header}
+            rows={10}
+            paginator
+            rowsPerPageOptions={[10, 20, 50]}
+            value={listaProductos}
+            filters={filters}
+            globalFilterFields={["name", "price", "categories.name"]}
+            emptyMessage="No se encontraron productos"
+            scrollable
+            tableStyle={{ minWidth: "50rem" }}
+            removableSort
+            className="header-woo"
+            editMode="cell"
+            stripedRows
+          >
+            <Column
+              style={{ minWidth: "0.5rem" }}
+              sortable
+              field="sku"
+              header="SKU"
+              editor={(options) => cellEditor(options)}
+              onCellEditComplete={onCellEditComplete}
+              body={(data) => {
+                return data.sku ? data.sku : "No tiene";
+              }}
+            />
 
-          <Column
-            style={{ minWidth: "5rem" }}
-            sortable
-            field="name"
-            header="Nombre Completo"
-            editor={(options) => cellEditor(options)}
-            onCellEditComplete={onCellEditComplete}
-          />
-          <Column header="Image" body={imageBodyTemplate}></Column>
-          <Column
-            sortable
-            field="regular_price"
-            header="Precio Regular"
-            body={(rowData) =>
-              new Intl.NumberFormat("es-CO", {
-                style: "currency",
-                currency: "COP",
-                maximumFractionDigits: "0",
-              }).format(rowData.regular_price)
-            }
-            editor={(options) => cellEditor(options)}
-            onCellEditComplete={onCellEditComplete}
-          />
-          <Column
-            sortable
-            field="sale_price"
-            header="Precio decuento"
-            body={(rowData) =>
-              new Intl.NumberFormat("es-CO", {
-                style: "currency",
-                currency: "COP",
-                maximumFractionDigits: "0",
-              }).format(rowData.sale_price)
-            }
-            editor={(options) => cellEditor(options)}
-            onCellEditComplete={onCellEditComplete}
-          />
-          <Column
-            sortable
-            field="categories"
-            header="Categoria padre"
-            body={(rowData) => rowData.categories[0]?.name}
-          />
-          <Column
-            sortable
-            field="categories"
-            header="Categoria hijo"
-            body={(rowData) => rowData.categories[1]?.name}
-          />
-          <Column sortable field="stock_quantity" header="Stock" />
-          <Column
-            sortable
-            field="stock_status"
-            header="Stock Estado"
-            body={statusBodyTemplate}
-            editor={(options) => cellEditor(options)}
-            onCellEditComplete={onCellEditComplete}
-          />
-        </DataTable>
-      </div>
+            <Column
+              style={{ minWidth: "5rem" }}
+              sortable
+              field="name"
+              header="Nombre Completo"
+              editor={(options) => cellEditor(options)}
+              onCellEditComplete={onCellEditComplete}
+            />
+            <Column header="Image" body={imageBodyTemplate}></Column>
+            <Column
+              sortable
+              field="regular_price"
+              header="Precio Regular"
+              body={(rowData) =>
+                new Intl.NumberFormat("es-CO", {
+                  style: "currency",
+                  currency: "COP",
+                  maximumFractionDigits: "0",
+                }).format(rowData.regular_price)
+              }
+              editor={(options) => cellEditor(options)}
+              onCellEditComplete={onCellEditComplete}
+            />
+            <Column
+              sortable
+              field="sale_price"
+              header="Precio decuento"
+              body={(rowData) =>
+                new Intl.NumberFormat("es-CO", {
+                  style: "currency",
+                  currency: "COP",
+                  maximumFractionDigits: "0",
+                }).format(rowData.sale_price)
+              }
+              editor={(options) => cellEditor(options)}
+              onCellEditComplete={onCellEditComplete}
+            />
+            <Column
+              sortable
+              field="categories"
+              header="Categoria padre"
+              body={(rowData) => rowData.categories[0]?.name}
+            />
+            <Column
+              sortable
+              field="categories"
+              header="Categoria hijo"
+              body={(rowData) => rowData.categories[1]?.name}
+            />
+            <Column sortable field="stock_quantity" header="Stock" />
+            <Column
+              sortable
+              field="stock_status"
+              header="Stock Estado"
+              body={statusBodyTemplate}
+              editor={(options) => cellEditor(options)}
+              onCellEditComplete={onCellEditComplete}
+            />
+          </DataTable>
+        </div>
+      ) : (
+        <div className="card">
+          <DataTable value={items} className="p-datatable-striped">
+            <Column
+              field="sku"
+              header="SKU"
+              body={<Skeleton />}
+            ></Column>
+            <Column
+              field="name"
+              header="Nombre Completo"
+              style={{ width: "25%" }}
+              body={<Skeleton />}
+            ></Column>
+            <Column
+              field="regular_price"
+              header="Precio Regular"
+              body={<Skeleton />}
+            ></Column>
+            <Column
+              field="sale_price"
+              header="Precio decuento"
+              body={<Skeleton />}
+            ></Column>
+             <Column
+              sortable
+              field="categories"
+              header="Categoria padre"
+              body={<Skeleton />}
+            />
+            <Column
+              sortable
+              field="categories"
+              header="Categoria hijo"
+              body={<Skeleton />}
+            />
+            <Column sortable field="stock_quantity" header="Stock"  body={<Skeleton />} />
+            <Column
+              sortable
+              field="stock_status"
+              header="Stock Estado"
+              body={<Skeleton />}
+             
+            />
+          </DataTable>
+        </div>
+      )}
     </div>
   );
 };

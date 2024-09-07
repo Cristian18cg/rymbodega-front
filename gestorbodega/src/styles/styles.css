@@ -645,3 +645,6 @@ color: white;
   transform: scale(1.1); /* Aumenta el tamaño del ícono al 110% */
   cursor: pointer; /* Cambia el cursor a una mano */
 }
+.header-woo .p-menubar{
+border: 0;
+}
