@@ -181,7 +181,9 @@ background-color: #ffffff;
   font-size: 14px;
 }
 .form-control-gestion input{
- padding: 0.5rem .5rem ;
+  height: 1rem;
+width: 12rem;
+
 }
 
 .form-control-gestion option::selection{

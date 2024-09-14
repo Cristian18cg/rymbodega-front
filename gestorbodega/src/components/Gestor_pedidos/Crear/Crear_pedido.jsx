@@ -13,7 +13,8 @@ export const Crear_pedido = ({
   Entregadores,
   agregar,
   docentregador,
-  numruta,baser
+  numruta,
+  baser,
 }) => {
   const { CrearPedido, ultimaRuta, setultimaRuta, obtener_ruta, ultimaBase } =
     useControl_Pedidos();
@@ -35,11 +36,11 @@ export const Crear_pedido = ({
   ]);
   useEffect(() => {
     if (!numruta) {
-
+      console.log(ultimaRuta)
       const ruta = parseInt(ultimaRuta, 0) + 1;
       setNumeroRuta(ruta);
-      setBase(ultimaBase,0);
-      setFormattedBase(ultimaBase,0);
+      setBase(ultimaBase, 0);
+      setFormattedBase(ultimaBase, 0);
     }
     // Llama a la función asincrónica para obtener los datos
   }, [ultimaRuta, ultimaBase]);
@@ -57,8 +58,8 @@ export const Crear_pedido = ({
     if (agregar) {
       setEntregadorSelec(docentregador);
       setNumeroRuta(numruta);
-      setBase(baser,0)
-      setFormattedBase(baser,0)
+      setBase(baser, 0);
+      setFormattedBase(baser, 0);
     }
   }, [agregar, docentregador]);
   useEffect(() => {
@@ -90,7 +91,7 @@ export const Crear_pedido = ({
   useEffect(() => {
     const funcionRuta = () => {
       const ultimoPedido = pedidos[pedidos.length - 1];
-      if (!numeroRuta || !ultimoPedido.valorPedido) {
+      if (!setNumeroRuta) {
         setErrorRuta(true);
       } else {
         setErrorRuta(false);
@@ -99,99 +100,99 @@ export const Crear_pedido = ({
     funcionRuta();
   }, [numeroRuta, pedidos]);
 
-    /* Toast de mensajes fallidos */
-    const showError = (error) => {
-      const Toast = Swal.mixin({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-        background: "#f3f2e8f1",
-        color: "black",
-        timerProgressBar: true,
-        didOpen: (toast) => {
-          toast.onmouseenter = Swal.stopTimer;
-          toast.onmouseleave = Swal.resumeTimer;
-        },
-      });
-      Toast.fire({
-        icon: "error",
-        title: error ? error : "¡Ha ocurrido un error!",
-        buttonsStyling: false,
-      });
-    };
-    const handleSubmit = async (event) => {
-      event.preventDefault();
-      const form = event.currentTarget;
-      // Validar tipo vehiculo
-      const erroresTemp = {};
-      const erroresTemp2 = {};
-      if (!tipoVehiculo.trim()) {
-        erroresTemp.tipoVehiculo = "El vehiculo predeterminado es requerido";
+  /* Toast de mensajes fallidos */
+  const showError = (error) => {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 3000,
+      background: "#f3f2e8f1",
+      color: "black",
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+      },
+    });
+    Toast.fire({
+      icon: "error",
+      title: error ? error : "¡Ha ocurrido un error!",
+      buttonsStyling: false,
+    });
+  };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    // Validar tipo vehiculo
+    const erroresTemp = {};
+    const erroresTemp2 = {};
+    if (!tipoVehiculo.trim()) {
+      erroresTemp.tipoVehiculo = "El vehiculo predeterminado es requerido";
+    }
+    // Validar nombre
+
+    if (!nombre.trim()) {
+      erroresTemp.nombre = "El nombre es requerido";
+    } else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(nombre)) {
+      erroresTemp.nombre = "El nombre solo puede contener letras";
+    }
+    // Validar apellidos
+    if (!apellidos.trim()) {
+      erroresTemp.apellidos = "Los apellidos son requeridos";
+    } else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(apellidos)) {
+      erroresTemp.apellidos = "Los apellidos solo pueden contener letras";
+    }
+    // Validar documento
+    if (!documento.trim()) {
+      erroresTemp.documento = "El numero de documento es requerido";
+    } else if (documento.length < 6 || documento.length > 15) {
+      erroresTemp.documento =
+        "El numero de documento debe tener entre 4 y 15 numeros";
+    }
+    pedidos.forEach((pedido, index) => {
+      if (!pedido.valorPedido.trim()) {
+        console.log("errores" + index);
+        erroresTemp2[index] = "El valor del pedido es requerido";
       }
-      // Validar nombre
-  
-      if (!nombre.trim()) {
-        erroresTemp.nombre = "El nombre es requerido";
-      } else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(nombre)) {
-        erroresTemp.nombre = "El nombre solo puede contener letras";
-      }
-      // Validar apellidos
-      if (!apellidos.trim()) {
-        erroresTemp.apellidos = "Los apellidos son requeridos";
-      } else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(apellidos)) {
-        erroresTemp.apellidos = "Los apellidos solo pueden contener letras";
-      }
-      // Validar documento
-      if (!documento.trim()) {
-        erroresTemp.documento = "El numero de documento es requerido";
-      } else if (documento.length < 6 || documento.length > 15) {
-        erroresTemp.documento =
-          "El numero de documento debe tener entre 4 y 15 numeros";
-      }
-      pedidos.forEach((pedido, index) => {
-        if (!pedido.valorPedido.trim()) {
-          console.log("errores" + index);
-          erroresTemp2[index] = "El valor del pedido es requerido";
-        }
-      });
-      setErrores2(erroresTemp2); //asignamos los mensajes al error temporal
-  
-      if (
-        form.checkValidity() === false ||
-        Object.keys(erroresTemp).length > 0 ||
-        Object.keys(erroresTemp2).length > 0
-      ) {
-        // Si hay errores, no se envía el formulario.
-        showError(
-          `No se ha podido crear la ruta debido a errores en los campos o campos incompletos.`
-        );
-  
-        event.stopPropagation();
-        setValidated(true);
-        return;
-      }
-      // Aplicar numeroRuta a todos los pedidos
-      const pedidosConNumeroRuta = pedidos.map((pedido) => ({
-        ...pedido,
-        numeroRuta,
-        base
-      }));
-  
-      try {
-        CrearPedido(
-          { nombre, documento, tipoVehiculo, acompañante, acompanado },
-          pedidosConNumeroRuta,
-          agregar
-        );
-      } catch (error) {
-        showError("Ah ocurrido un error al crear la carpeta: \n" + error);
-        // Manejar errores de solicitud
-        console.error("Error al guardar datos y archivos:", error);
-        // Manejar el error en el componente principal si es necesario
-      }
-    };
-  
+    });
+    setErrores2(erroresTemp2); //asignamos los mensajes al error temporal
+
+    if (
+      form.checkValidity() === false ||
+      Object.keys(erroresTemp).length > 0 ||
+      Object.keys(erroresTemp2).length > 0
+    ) {
+      // Si hay errores, no se envía el formulario.
+      showError(
+        `No se ha podido crear la ruta debido a errores en los campos o campos incompletos.`
+      );
+
+      event.stopPropagation();
+      setValidated(true);
+      return;
+    }
+    // Aplicar numeroRuta a todos los pedidos
+    const pedidosConNumeroRuta = pedidos.map((pedido) => ({
+      ...pedido,
+      numeroRuta,
+      base,
+    }));
+
+    try {
+      CrearPedido(
+        { nombre, documento, tipoVehiculo, acompañante, acompanado },
+        pedidosConNumeroRuta,
+        agregar
+      );
+    } catch (error) {
+      showError("Ah ocurrido un error al crear la carpeta: \n" + error);
+      // Manejar errores de solicitud
+      console.error("Error al guardar datos y archivos:", error);
+      // Manejar el error en el componente principal si es necesario
+    }
+  };
+
   // Manejo de cambios en los pedidos
   const handlePedidoChange = (index, field, value) => {
     const newPedidos = [...pedidos];
@@ -240,7 +241,7 @@ export const Crear_pedido = ({
       ...pedidos,
       {
         numeroRuta: numeroRuta,
-        base: (base,0),
+        base: (base, 0),
         valorPedido: "",
         numeroFactura: "",
         tipoPedido: "Tienda",
@@ -259,7 +260,7 @@ export const Crear_pedido = ({
       });
     }
   };
- 
+
   const formatCurrency = (value) => {
     const numericValue = value?.toString().replace(/\D/g, ""); // Asegura que value es una cadena
     return new Intl.NumberFormat("es-CO", {
@@ -277,7 +278,7 @@ export const Crear_pedido = ({
   const handleFocus2 = () => {
     // Remueve el formato de moneda y muestra solo los números
     const numericValue = base?.toString().replace(/[^\d]/g, "");
-    console.log(numericValue)
+    console.log(numericValue);
     setBase(numericValue);
     setFormattedBase(numericValue); // Muestra el valor numérico sin formatear cuando el campo está enfocado
   };
@@ -295,7 +296,7 @@ export const Crear_pedido = ({
         <>
           <Form noValidate validated={validated} onSubmit={handleSubmit}>
             {/* Entregador  */}
-            <Row className="  mt-3">
+            <Row>
               <Col xs={12} md={12} className="mb-3">
                 <Form.Group
                   as={Col}
@@ -334,7 +335,7 @@ export const Crear_pedido = ({
             {seleccionado ? (
               <>
                 {/* Datos */}
-                <Row className="mb-3 ">
+                <Row className="">
                   {/* Nombre */}
                   <Col xs={12} md={6} className="mb-3">
                     <Form.Group
@@ -403,7 +404,7 @@ export const Crear_pedido = ({
                   </Col>
                 </Row>
                 {/* Documento y tipo vehiculo */}
-                <Row className="mb-3 ">
+                <Row className="">
                   {/* documento */}
                   <Col xs={12} md={6} className="mb-3">
                     <Form.Group
@@ -417,6 +418,8 @@ export const Crear_pedido = ({
                         className="mb-1"
                       >
                         <Form.Control
+                          className="form-control-gestion"
+
                           disabled={true}
                           type="text"
                           placeholder="Numero documento"
@@ -480,9 +483,9 @@ export const Crear_pedido = ({
                   </Col>
                 </Row>
                 {/* Numero de ruta y acompañante  */}
-                <Row className="mb-3">
+                <Row className="">
                   {/* numero ruta */}
-                  <Col xs={12} md={4} className="mb-3">
+                  <Col xs={12} md={4}>
                     <Form.Group
                       as={Col}
                       controlId="numeroRuta"
@@ -494,6 +497,7 @@ export const Crear_pedido = ({
                         className="mb-1"
                       >
                         <Form.Control
+                          className="form-control-gestion"
                           disabled={agregar}
                           type="text"
                           placeholder="Numero de ruta"
@@ -503,13 +507,16 @@ export const Crear_pedido = ({
                       </FloatingLabel>
                     </Form.Group>
                     {errorRuta && (
-                      <p style={{ color: "#dc3545", fontSize: "14px" }}>
+                      <p
+                        className="mt-2"
+                        style={{ color: "#dc3545", fontSize: "14px" }}
+                      >
                         Debe digitar el numero de ruta
                       </p>
                     )}
                   </Col>
                   {/* base */}
-                  <Col xs={12} md={4} className="mb-3">
+                  <Col xs={12} md={4}>
                     <Form.Group
                       as={Col}
                       controlId="Base"
@@ -521,7 +528,7 @@ export const Crear_pedido = ({
                         className="mb-1"
                       >
                         <Form.Control
-                        disabled={agregar}
+                          disabled={agregar}
                           type="text"
                           placeholder="Base"
                           value={formattedBase}
@@ -533,10 +540,10 @@ export const Crear_pedido = ({
                     </Form.Group>
                   </Col>
                   {/* Checkbox para indicar si va acompañado */}
-                  <Col xs={12} md={4} className="mb-3">
+                  <Col xs={12} md={4}>
                     <Form.Group
                       controlId="acompanado"
-                      className="form-control-gestion mt-3"
+                      className=" mt-3"
                     >
                       <Form.Check
                         type="checkbox"
@@ -588,13 +595,13 @@ export const Crear_pedido = ({
                 {pedidos.map((pedido, index) => (
                   <>
                     <Row>
-                      <Col xs={12} md={12} className="mb-3">
-                        {index + 1}) Pedido
+                      <Col xs={12} md={12}>
+                        <p>{index + 1}) Pedido</p>
                       </Col>
                     </Row>
-                    <Row>
+                    <Row className="mb-3">
                       {/* Valor pedido */}
-                      <Col xs={12} md={4} className="mb-3">
+                      <Col xs={12} md={4}>
                         <Form.Group
                           controlId={index}
                           className="form-control-gestion"
@@ -622,7 +629,7 @@ export const Crear_pedido = ({
                         </Form.Group>
                       </Col>
                       {/* Numero de factura */}
-                      <Col xs={12} md={4} className="mb-3">
+                      <Col xs={12} md={4}>
                         <Form.Group
                           controlId={`numeroFactura-${index}`}
                           className="form-control-gestion"
@@ -647,7 +654,7 @@ export const Crear_pedido = ({
                         </Form.Group>
                       </Col>
                       {/* Tipo de pedido */}
-                      <Col xs={12} md={4} className="mb-3">
+                      <Col xs={12} md={4}>
                         <Form.Group
                           controlId={`tipoPedido-${index}`}
                           className="form-control-gestion"
@@ -685,12 +692,14 @@ export const Crear_pedido = ({
                   label=" Agregar Pedido"
                   disabled={errorRuta}
                   icon="pi pi-plus"
+                  style={{ height: "2rem", width: "12rem" }}
                   className="mb-3 p-button p-component  button-verde"
                   onClick={agregarPedido}
                 />
                 {pedidos.length > 1 && (
                   <PrimeButton
                     type="button"
+                    style={{ height: "2rem", width: "12rem" }}
                     icon="pi pi-minus"
                     className="mb-3 p-button p-component p-button-outlined button-gestion"
                     onClick={eliminarPedido}

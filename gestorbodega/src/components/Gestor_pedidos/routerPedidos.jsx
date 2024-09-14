@@ -7,15 +7,19 @@ import {Lista_entregas} from './Lista_entregas'
 import {Historico_Entregas} from './historico_entregas/Historico_Entregas'
 import useControl from '../../hooks/useControl'
 import { ListaProductos } from "./Woocomerce/ListaProductos";
+import Home from "./Home";
+
 const RouterPedidos = () => {
     const {jsonlogin} = useControl()
     return (<>
       <Router>
             <Header />
             <Routes>
-             {/*    <Route path="/" element={<Home_gestion_humana  />} />
+             {/*    
+             <Route path="/" element={<Home_gestion_humana  />} />
                 <Route path="/agregar_documento" element={<Agregardocumento  />} />
                 <Route path="/lista_colaboradores" element={<ListaColaboradores auxiliar={false} />} /> */}
+                 < Route path="/" element={<Home />} />
                  <Route path="crear/entregador" element={<Crear_entregador  />} />
                  <Route path="lista/entregas" element={<Lista_entregas  />} />
                  <Route path="lista/historico_entregas" element={<Historico_Entregas  />} />

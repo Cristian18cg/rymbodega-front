@@ -11,8 +11,9 @@ const PedidosPovider = ({ children }) => {
   const [ultimaRuta, setultimaRuta] = useState("");
   const [ultimaBase, setultimaBase] = useState("");
   const [ListadoEntregadores, setListadoEntregadores] = useState("");
-  const [Listahistorico, setListahistorico] = useState("");
 
+  const [estadisticas, setEstadisticas] = useState("");
+  const [Listahistorico, setListahistorico] = useState("");
   const [EntregadoresTotal, setEntregadoresTotal] = useState("");
   const [VisibleRuta, setVisibleRuta] = useState(false);
   const [Visibleagregar, setVisibleagregar] = useState(false);
@@ -106,9 +107,9 @@ const PedidosPovider = ({ children }) => {
           },
         }
       );
-      console.log(response.data)
+      console.log(response.data);
       setultimaRuta(response.data.numero_ruta);
-      setultimaBase(response.data.base)
+      setultimaBase(response.data.base);
     } catch (error) {
       FuncionErrorToken(error);
       // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
@@ -176,7 +177,7 @@ const PedidosPovider = ({ children }) => {
         timer: 2000,
       });
       setresCrearColaborador("Yes");
-      Listar_entregadores()
+      Listar_entregadores();
     } catch (error) {
       window.scrollTo(0, 0);
 
@@ -187,7 +188,7 @@ const PedidosPovider = ({ children }) => {
   };
   /* Funcion de crear pedido */
   const CrearPedido = async (datos, pedidos, agregar) => {
-    console.log(pedidos)
+    console.log(pedidos);
     const tokenDeAcceso = token;
     try {
       const formData = new FormData();
@@ -219,9 +220,9 @@ const PedidosPovider = ({ children }) => {
       });
       setVisibleRuta(false);
       Listar_entregadores_rutas();
-      if(agregar){
-        Listar_pedidos(datos.documento)
-        setVisibleagregar(false)
+      if (agregar) {
+        Listar_pedidos(datos.documento);
+        setVisibleagregar(false);
       }
     } catch (error) {
       window.scrollTo(0, 0);
@@ -250,7 +251,14 @@ const PedidosPovider = ({ children }) => {
     }
   };
   /* Funcion para actualizar informacion del pedido */
-  const actualizar_pedidos = async (id, field, dato, documento,efectivo, numeroRuta) => {
+  const actualizar_pedidos = async (
+    id,
+    field,
+    dato,
+    documento,
+    efectivo,
+    numeroRuta
+  ) => {
     try {
       const tokenDeAcceso = token;
       const response = await clienteAxios.put(
@@ -261,8 +269,8 @@ const PedidosPovider = ({ children }) => {
           dato: dato,
           usuario: usuario,
           documento: documento,
-          efectivo:efectivo,
-          numeroRuta:numeroRuta
+          efectivo: efectivo,
+          numeroRuta: numeroRuta,
         },
         {
           headers: {
@@ -271,8 +279,8 @@ const PedidosPovider = ({ children }) => {
           },
         }
       );
-      if(efectivo){
-        Listar_pedidos(documento)
+      if (efectivo) {
+        Listar_pedidos(documento);
       }
       Listar_entregadores_rutas();
       showSuccess(response.data.success);
@@ -332,6 +340,22 @@ const PedidosPovider = ({ children }) => {
       // Maneja el error según sea necesario
     }
   };
+  /* Funcion para listar las rutas por entregador del dia */
+  const Estadisticas = async () => {
+    try {
+      const tokenDeAcceso = token;
+      const response = await clienteAxios.get("pedidos/estadisticas_pedidos/", {
+        headers: {
+          Authorization: `Bearer ${tokenDeAcceso}`,
+        },
+      });
+      setEstadisticas(response.data);
+    } catch (error) {
+      FuncionErrorToken(error);
+      console.error("Error al obtener los colaboradores:", error);
+      // Aquí puedes manejar el error como desees, por ejemplo, mostrando una notificación al usuario.
+    }
+  };
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
     if (error?.response?.status === 401) {
@@ -365,6 +389,9 @@ const PedidosPovider = ({ children }) => {
       Listar_entregadores,
       Listar_entregadores_rutas,
       Listar_pedidos,
+      estadisticas,
+      setEstadisticas,
+      Estadisticas,
       Pedidos,
       setPedidos,
       actualizar_pedidos,
@@ -375,9 +402,13 @@ const PedidosPovider = ({ children }) => {
       Listahistorico,
       setListahistorico,
       historico_entregas,
-      Visibleagregar, setVisibleagregar,
-      ultimaRuta, setultimaRuta,
-      obtener_ruta,ultimaBase, setultimaBase
+      Visibleagregar,
+      setVisibleagregar,
+      ultimaRuta,
+      setultimaRuta,
+      obtener_ruta,
+      ultimaBase,
+      setultimaBase,
     };
   }, [
     VisibleRutaEntregador,
@@ -393,6 +424,9 @@ const PedidosPovider = ({ children }) => {
     setresCrearColaborador,
     ListadoEntregadores,
     setListadoEntregadores,
+    estadisticas,
+    setEstadisticas,
+    Estadisticas,
     Listar_pedidos,
     Pedidos,
     setPedidos,
@@ -406,8 +440,11 @@ const PedidosPovider = ({ children }) => {
     historico_entregas,
     Visibleagregar,
     setVisibleagregar,
-    ultimaRuta, setultimaRuta,
-    obtener_ruta,ultimaBase, setultimaBase
+    ultimaRuta,
+    setultimaRuta,
+    obtener_ruta,
+    ultimaBase,
+    setultimaBase,
   ]);
 
   return (

@@ -12,7 +12,7 @@ import { debounce } from "lodash";
 import { Dialog } from "primereact/dialog";
 import { Knob } from "primereact/knob";
 import { Crear_pedido } from "./Crear/Crear_pedido";
-import {Rutas_entregador} from './Tabla_rutas/RutasEntregador'
+import { Rutas_entregador } from "./Tabla_rutas/RutasEntregador";
 export const Lista_entregas = () => {
   const {
     EntregadoresTotal,
@@ -23,7 +23,7 @@ export const Lista_entregas = () => {
     setVisibleRuta,
     VisibleRutaEntregador,
     setVisibleRutaEntregador,
-    Listar_pedidos
+    Listar_pedidos,
   } = useControl_Pedidos();
 
   const [filters, setFilters] = useState({
@@ -45,6 +45,11 @@ export const Lista_entregas = () => {
     // Llama a la función asincrónica para obtener los datos
     delayedRequest();
   }, []);
+
+  useEffect(() => {
+    // Llama a la función asincrónica para obtener los datos
+    console.log(ListadoEntregadores);
+  }, [ListadoEntregadores]);
   /* limpia filtros */
   const clearFilter = () => {
     /*  setFilters(null); */ // Puedes establecer el filtro como null para borrarlo
@@ -160,10 +165,38 @@ export const Lista_entregas = () => {
       </Navbar>
     );
   };
-    const valorruta = (data) => {
+  const valorruta = (data) => {
     // Filtra los pedidos que pertenecen a la ruta específica
     const pedidosRuta = data.total_valor;
-    
+
+    const total = new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(pedidosRuta);
+    return total;
+  };
+  const valosincompletar = (data) => {
+    // Filtra los pedidos que pertenecen a la ruta específica
+    const pedidosRuta = data.total_valor_no_completados
+      ? data.total_valor_no_completados
+      : 0;
+
+    const total = new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(pedidosRuta);
+    return total;
+  };
+  const valorcredito = (data) => {
+    // Filtra los pedidos que pertenecen a la ruta específica
+    const pedidosRuta = data.total_valor_creditos
+      ? data.total_valor_creditos
+      : 0;
+
     const total = new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
@@ -183,9 +216,12 @@ export const Lista_entregas = () => {
             setVisibleRuta(false);
           }}
           maximizable
-          style={{ width: "80vw" }}
+          style={{ width: "50vw" }}
         >
-          <Crear_pedido Entregadores={EntregadoresTotal} agregar={false}></Crear_pedido>
+          <Crear_pedido
+            Entregadores={EntregadoresTotal}
+            agregar={false}
+          ></Crear_pedido>
         </Dialog>
         {/* Dialog de rutas*/}
 
@@ -196,9 +232,13 @@ export const Lista_entregas = () => {
             setVisibleRutaEntregador(false);
           }}
           maximizable
-          style={{ width: "90vw", height: "90vh"  }}
+          style={{ width: "98vw", height: "95vh" }}
         >
-          <Rutas_entregador documento={DocEntregador} nombreentregador={nomEntregador} Entregadores={EntregadoresTotal}/>
+          <Rutas_entregador
+            documento={DocEntregador}
+            nombreentregador={nomEntregador}
+            Entregadores={EntregadoresTotal}
+          />
         </Dialog>
         <DataTable
           rows={10}
@@ -214,10 +254,11 @@ export const Lista_entregas = () => {
           removableSort
         >
           <Column
-          header="Ver pedidos"
+            header="Ver pedidos"
             className="mx-3"
             body={(rowData) => {
-              return ( // Asegúrate de retornar algo aquí
+              return (
+                // Asegúrate de retornar algo aquí
                 <Button
                   icon="pi pi-window-maximize"
                   className="color-icon2"
@@ -225,24 +266,23 @@ export const Lista_entregas = () => {
                     setVisibleRutaEntregador(true);
                     setDocEntregador(rowData.documento);
                     setnomEntregador(rowData.entregador);
-                    Listar_pedidos(rowData.documento)
+                    Listar_pedidos(rowData.documento);
                   }}
                 />
               );
             }}
             style={{ maxWidth: "3rem" }}
           />
-
           <Column
             style={{ minWidth: "10rem" }}
             sortable
             field="entregador"
             header="Nombre Completo"
           />
-           <Column header="Cantidad de creditos" field="creditos" />
-
-           <Column header="Valor pedidos" body={valorruta} />
-
+          <Column header="Cantidad de creditos" field="creditos" />
+          <Column header="Valor credito" body={valorcredito} />
+          <Column header="Valor incompletos" body={valosincompletar} />
+          <Column header="Valor total pedidos" body={valorruta} />
           <Column
             style={{ minWidth: "15rem" }}
             field="completados"

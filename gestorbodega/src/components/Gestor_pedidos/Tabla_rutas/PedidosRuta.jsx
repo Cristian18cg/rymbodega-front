@@ -7,6 +7,9 @@ import { InputNumber } from "primereact/inputnumber";
 import { Tag } from "primereact/tag";
 import { InputSwitch } from "primereact/inputswitch";
 import { Button } from "react-bootstrap";
+import { MultiSelect } from "primereact/multiselect";
+
+import { SelectButton } from "primereact/selectbutton";
 export const PedidosRuta = ({ data, documento }) => {
   const {
     actualizar_pedidos,
@@ -58,6 +61,7 @@ export const PedidosRuta = ({ data, documento }) => {
 
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e;
+    console.log(newValue);
     if (rowData[field] === newValue) {
       event.preventDefault(); // No hacer nada si el valor no cambia
       return;
@@ -93,6 +97,11 @@ export const PedidosRuta = ({ data, documento }) => {
         rowData[field] = newValue;
 
         break;
+      case "tipo_pedido":
+        actualizar_pedidos(rowData.id, field, newValue, documento);
+        rowData[field] = newValue;
+
+        break;
       default:
         if (newValue?.trim().length > 0) rowData[field] = newValue;
         else event.preventDefault();
@@ -102,6 +111,7 @@ export const PedidosRuta = ({ data, documento }) => {
 
   const cellEditor = (options) => {
     if (options.field === "numero_factura") return textEditor(options);
+    else if (options.field === "tipo_pedido") return optionEditor(options);
     else return priceEditor(options);
   };
   const textEditor = (options) => {
@@ -124,6 +134,28 @@ export const PedidosRuta = ({ data, documento }) => {
         locale="es"
         maxFractionDigits={2}
         onKeyDown={(e) => e.stopPropagation()}
+      />
+    );
+  };
+  const options2 = ["Tienda", "Mayorista"];
+  const optionEditor = (options) => {
+
+    return (
+      <SelectButton
+        value={[options.value]}
+        onChange={(e) => {
+          options?.editorCallback(e?.value);
+        }}
+        options={options2}
+        onKeyDown={(e) => e.stopPropagation()}
+        itemTemplate={(option) => {
+          return (
+            <Tag
+              value={option}
+              severity={getSeverityTienda(option)}
+            ></Tag>
+          );
+        }}
       />
     );
   };
@@ -152,14 +184,12 @@ export const PedidosRuta = ({ data, documento }) => {
 
   const completarpedido = (dato, ud) => {
     const doc = documento;
-  // Actualiza el campo 'completado' del pedido específico
- 
+    // Actualiza el campo 'completado' del pedido específico
 
     actualizar_pedidos(ud, "completado", dato, doc);
     Listar_pedidos(doc);
     if (dato) {
-        // Actualiza el campo 'completado' del pedido específico
-
+      // Actualiza el campo 'completado' del pedido específico
 
       // Encuentra el pedido con el id `ud` y verifica si 'credito' es true
       const pedidoConCredito = Pedidos.some((ruta) =>
@@ -169,10 +199,10 @@ export const PedidosRuta = ({ data, documento }) => {
       // Si se encuentra un pedido con 'credito' true, llama a la función `credito`
       if (pedidoConCredito) {
         credito(false, ud);
-      }else{
+      } else {
         Listar_pedidos(doc);
       }
-    }else{
+    } else {
       Listar_pedidos(doc);
     }
   };
@@ -188,7 +218,6 @@ export const PedidosRuta = ({ data, documento }) => {
     const doc = documento;
     actualizar_pedidos(ud, "credito", dato, doc);
     Listar_pedidos(doc);
-
   };
   const creditoSwitch = (rowData) => {
     return (
@@ -280,6 +309,8 @@ export const PedidosRuta = ({ data, documento }) => {
           field="tipo_pedido"
           header="Tipo"
           sortable
+          editor={(options) => cellEditor(options)}
+          onCellEditComplete={onCellEditComplete}
           body={statusBodyTipo}
         ></Column>
         <Column

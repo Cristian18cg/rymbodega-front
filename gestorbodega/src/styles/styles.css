@@ -648,3 +648,24 @@ color: white;
 .header-woo .p-menubar{
 border: 0;
 }
+.button-home-card:hover{
+background-color: rgb(215, 19, 19)!important;
+border-color:rgb(172, 20, 20)!important ;
+color: white!important;
+}
+.p-selectbutton .p-button{
+  background-color: rgb(240, 216, 216, 0.275);
+  border-color:rgb(215, 19, 19) ;
+}
+.p-selectbutton .p-button:focus{
+box-shadow: 0 1 0.3rem rgb(156, 22, 1)!important;
+
+}
+.p-selectbutton .p-button:hover{
+  box-shadow: 0 0 0.2rem rgb(246, 33, 33)!important ;
+  
+  }
+  .p-selectbutton .p-button:focus-within{
+    box-shadow: 0 0 0.2rem rgb(156, 22, 1)!important ;
+    
+    }
