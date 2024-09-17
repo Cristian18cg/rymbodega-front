@@ -1,14 +1,14 @@
 import { useState, createContext, useEffect, useMemo } from "react";
-import wooAxios from "../../config/urlWoo";
+import W_OAxios from "../../config/urlW_O";
 import Swal from "sweetalert2";
 import useControl from "../../hooks/useControl";
+import axios from "axios";
 const WOContextControl = createContext();
 
 const WOProvider = ({ children }) => {
   const { token, usuario } = useControl();
-  const [listaProductos, setlistaProductos] = useState("");
-  const [tokenWoo, settokenWoo] = useState(process.env.REACT_APP_WOOCOMERCE_TOKEN);
-  const [tokenWoo2, settokenWoo2] = useState(process.env.REACT_APP_WOOCOMERCE_TOKEN2);
+  const [listaProductosW_O, setlistaProductosW_O] = useState("");
+  const [tokenWo, settokenWoo] = useState(process.env.REACT_APP_TOKEN_WO);
 
   const showError = (error) => {
     const Toast = Swal.mixin({
@@ -50,86 +50,75 @@ const WOProvider = ({ children }) => {
       buttonsStyling: false,
     });
   };
-  /* Funcion para listar las rutas por entregador del dia */
-  const ListarProductos = async () => {
+
+  /* listar productos  */
+  const ListarProductosWO = async () => {
     try {
-      const ConsumerKey = tokenWoo;
-      const consumerSecret = tokenWoo2;
-      const perPage = 100; // Número máximo de productos por página permitido por WooCommerce
-  
-      // Solicitud inicial para obtener el número total de productos y páginas
-      const initialResponse = await wooAxios.get("wp-json/wc/v3/products", {
-        auth: {
-          username: ConsumerKey,
-          password: consumerSecret,
-        },
-        params: {
-          per_page: perPage,
-          page: 1,
+      const body = {
+        columnaOrdenar: "id",
+        pagina: 0,
+        registrosPorPagina: 10,
+        orden: "DESC",
+        filtros: [],
+        canal: 0,
+        registroInicial: 0,
+      };
+      const response = await axios.post("https://api.worldoffice.cloud/inventarios/listarInventarios", body, {
+        headers: {
+          "Content-Type": "application/json",
+
+          Authorization: `WO ${tokenWo}`,
         },
       });
-  
-      // Obtener el número total de productos desde los encabezados de respuesta
-      const totalProducts = parseInt(initialResponse.headers["x-wp-total"], 10);
-      const totalPages = parseInt(initialResponse.headers["x-wp-totalpages"], 10);
-  
-      // Crear una matriz de promesas para solicitudes a todas las páginas
-      const requests = [];
-      for (let page = 1; page <= totalPages; page++) {
-        requests.push(
-          wooAxios.get("wp-json/wc/v3/products", {
-            auth: {
-              username: ConsumerKey,
-              password: consumerSecret,
-            },
-            params: {
-              per_page: perPage,
-              page: page,
-            },
-          })
-        );
-      }
-  
-      // Esperar a que todas las solicitudes se completen
-      const responses = await Promise.all(requests);
-  
-      // Combinar todos los productos en una sola matriz
-      const allProducts = responses.reduce((accumulator, response) => {
-        return accumulator.concat(response.data);
-      }, []);
-  
-      console.log(`Total de productos obtenidos: ${allProducts.length}`);
-      setlistaProductos(allProducts);
+      console.log(response);
+      console.log("Respuesta:", response.data);
     } catch (error) {
-      FuncionErrorToken(error);
+      if (error.response) {
+        // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
+        console.error(
+          "Error en la respuesta del servidor:",
+          error.response.data
+        );
+        console.error("Estado:", error.response.status);
+      } else if (error.request) {
+        // La solicitud fue hecha pero no se recibió respuesta
+        console.error("Error en la solicitud:", error.request);
+      } else {
+        // Algo ocurrió al configurar la solicitud
+        console.error("Error desconocido:", error.message);
+      }
+
       console.error("Error al obtener los productos:", error);
-      // Manejo adicional de errores si es necesario
     }
   };
-  const ModificarProducto = async (idProducto, campo, valor) => {
+  /*   const ModificarProducto = async (idProducto, campo, valor) => {
     try {
       const valorComoCadena = valor.toString();
       const ConsumerKey = tokenWoo;
       const consumerSecret = tokenWoo2;
-  
+
       const dataActualizacion = {
         [campo]: valorComoCadena,
       };
-  
-      const response = await wooAxios.put(`wp-json/wc/v3/products/${idProducto}`, dataActualizacion, {
-        auth: {
-          username: ConsumerKey,
-          password: consumerSecret,
-        },
-      });
-   showSuccess("Producto actualizado con exito", response.data)
+
+      const response = await wooAxios.put(
+        `wp-json/wc/v3/products/${idProducto}`,
+        dataActualizacion,
+        {
+          auth: {
+            username: ConsumerKey,
+            password: consumerSecret,
+          },
+        }
+      );
+      showSuccess("Producto actualizado con exito", response.data);
       return response.data; // Devuelve los datos del producto actualizado si lo necesitas
     } catch (error) {
       FuncionErrorToken(error);
       console.error("Error al actualizar el producto:", error);
       // Maneja el error según sea necesario, como mostrar una notificación al usuario.
     }
-  };
+  }; */
 
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
@@ -149,12 +138,11 @@ const WOProvider = ({ children }) => {
 
   const contextValue = useMemo(() => {
     return {
-      listaProductos,
-      setlistaProductos,
-     ListarProductos,
-     ModificarProducto
+      listaProductosW_O,
+      setlistaProductosW_O,
+      ListarProductosWO,
     };
-  }, [listaProductos, setlistaProductos, ListarProductos]);
+  }, [listaProductosW_O, setlistaProductosW_O, ListarProductosWO]);
 
   return (
     <WOContextControl.Provider value={contextValue}>

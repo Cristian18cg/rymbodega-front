@@ -23,14 +23,13 @@ const Header = () => {
   const [notificacion2, setNotificacion2] = useState([]);
   const [notificacion3, setNotificacion3] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
- 
+
   const onClickLogout = () => {
     navigate("/");
     logout(jsonlogin.id);
   };
 
- 
-/* 
+  /* 
 
   const baseURL = process.env.REACT_APP_BASE_URL
   const baseURLWithoutHttp = baseURL.replace('http://', '');
@@ -84,13 +83,13 @@ const Header = () => {
 /*     RegistrosNotificacionActivo();
     RegistrosNotificacionRetiro();
     RegistrosNotificacionIngreso(); */
-/*   }, 500); */
+  /*   }, 500); */
 
-/*   useEffect(() => {
+  /*   useEffect(() => {
     delayedRequest();
-  }, []); */ 
+  }, []); */
 
-/*   useEffect(() => {
+  /*   useEffect(() => {
     const buscarRegistrosingreso = () => {
       const mensajes = [];
       registros?.data.forEach((elemento) => {
@@ -202,9 +201,7 @@ const Header = () => {
       return 0; // Si alguna de las constantes es undefined, retornar 0
     }
     let numeronotificaciones =
-      registros.total +
-      registros2.total +
-      registros3.total;
+      registros.total + registros2.total + registros3.total;
 
     if (isNaN(numeronotificaciones)) {
       return 0; // Si la suma es NaN, retornar 0
@@ -213,86 +210,90 @@ const Header = () => {
   };
   return (
     <>
-      
-        <Navbar
-          sticky="top"
-          bg="dark"
-          data-bs-theme="dark"
-          expand="lg"
-          className="justify-content-between bg-black"
-        >
-          <Container>
-            <img
-              src={imagenn}
-              alt="imagen rym logo"
-              width="auto"
-              height="80"
-              onClick={() => {
-                navigate("/");
-              }}
-            />
-            <h1 className="text-light">Gestor bodega rym</h1>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse
-              className="justify-content-end"
-              id="basic-navbar-nav"
-            >
-              <Nav className="mr-sm-2 align-items-center">
-                <div className="align-items-center  ">
-                  {/* icono home */}
-                  <i
-                    className="pi pi-home icon-notification "
-                    style={{ fontSize: "1.5rem" }}
-                    onClick={() => {
-                      navigate("/");
-                    }}
-                  ></i>
-                  {/* icono campana */}
+      <Navbar
+        sticky="top"
+        bg="dark"
+        data-bs-theme="dark"
+        expand="lg"
+        className="justify-content-between bg-black"
+      >
+        <Container>
+          <img
+            src={imagenn}
+            alt="imagen rym logo"
+            width="auto"
+            height="80"
+            onClick={() => {
+              navigate("/");
+            }}
+          />
+          <h1 className="text-light">Gestor bodega rym</h1>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse
+            className="justify-content-end"
+            id="basic-navbar-nav"
+          >
+            <Nav className="mr-sm-2 align-items-center">
+              <div className="align-items-center  ">
+                {/* icono home */}
+                <i
+                  className="pi pi-home icon-notification "
+                  style={{ fontSize: "1.5rem" }}
+                  onClick={() => {
+                    navigate("/");
+                  }}
+                ></i>
+                {/* icono campana */}
 
-                  <i
-                    className="pi pi-bell p-overlay-badge icon-notification mx-2"
-                    style={{ fontSize: "1.5rem" }}
-                    onClick={() => {
-                      setVisible(true);
-                    }}
-                  >
-                    <Badge
-                      value={calcularregisto()}
-                      severity="secondary"
-                      className="badge-notification"
-                    ></Badge>
-                  </i>
-                </div>
-                <NavDropdown id="basic-nav-dropdown" title="Entregas">
-                  <NavDropdown.Item as={Link} to="/crear/entregador">
-                      <i className="pi pi-user-plus" /> Crear entregador
-                    </NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/lista/entregas">
-                      <i className="pi pi-car " /> Lista entregas
-                    </NavDropdown.Item>  
-                    <NavDropdown.Item as={Link} to="/lista/historico_entregas">
-                      <i className="pi pi-address-book " /> Historico entregas
-                    </NavDropdown.Item>
-                </NavDropdown>
-                {/* Woocomerce */}
-                <NavDropdown id="basic-nav-dropdown" title="Woocomerce">
-                  <NavDropdown.Item as={Link} to="/woocomerce/productos">
-                      <i className="pi pi-shopping-bag" /> Productos
-                    </NavDropdown.Item>
-                </NavDropdown>
-
-                <i className="bi-person-circle mi-icono "></i>
-                <NavDropdown id="basic-nav-dropdown" title={usuario}>
-                  <NavDropdown.Item href="#action/3.2">
-                    Configuracion
-                  </NavDropdown.Item>
-                  <NavDropdown.Item href="/" onClick={onClickLogout}>
-                    Cerrar Sesion
-                  </NavDropdown.Item>
-                </NavDropdown>
-              </Nav>
-            </Navbar.Collapse>
-            {/* <Sidebar
+                <i
+                  className="pi pi-bell p-overlay-badge icon-notification mx-2"
+                  style={{ fontSize: "1.5rem" }}
+                  onClick={() => {
+                    setVisible(true);
+                  }}
+                >
+                  <Badge
+                    value={calcularregisto()}
+                    severity="secondary"
+                    className="badge-notification"
+                  ></Badge>
+                </i>
+              </div>
+              <NavDropdown id="basic-nav-dropdown" title="Entregas">
+                <NavDropdown.Item as={Link} to="/crear/entregador">
+                  <i className="pi pi-user-plus" /> Crear entregador
+                </NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/lista/entregas">
+                  <i className="pi pi-car " /> Lista entregas
+                </NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/lista/historico_entregas">
+                  <i className="pi pi-address-book " /> Historico entregas
+                </NavDropdown.Item>
+              </NavDropdown>
+              {/* Woocomerce */}
+              <NavDropdown id="basic-nav-dropdown" title="Woocomerce">
+                <NavDropdown.Item as={Link} to="/woocomerce/productos">
+                  <i className="pi pi-shopping-bag" /> Productos
+                </NavDropdown.Item>
+              </NavDropdown>
+              {/* worldoffice */}
+              <NavDropdown id="basic-nav-dropdown" title="World Office">
+                <NavDropdown.Item as={Link} to="/worldoffice/productos">
+                  <i className="pi pi-shopping-bag" /> Productos WO
+                </NavDropdown.Item>
+              </NavDropdown>
+              <i className="bi-person-circle mi-icono "></i>
+              <NavDropdown id="basic-nav-dropdown" title={usuario}>
+                <NavDropdown.Item href="#action/3.2">
+                  Configuracion
+                </NavDropdown.Item>
+                <NavDropdown.Item href="/" onClick={onClickLogout}>
+                  Cerrar Sesion
+                </NavDropdown.Item>
+              </NavDropdown>
+            </Nav>
+          </Navbar.Collapse>
+          {/* <Sidebar
               visible={visible}
               onHide={() => setVisible(false)}
               className="side-noti"
@@ -349,9 +350,8 @@ const Header = () => {
                 <></>
               )}
             </Sidebar> */}
-          </Container>
-        </Navbar>
-      
+        </Container>
+      </Navbar>
     </>
   );
 };
