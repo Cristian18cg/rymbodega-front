@@ -1,6 +1,7 @@
 {
   "name": "gestorBodega",
   "version": "0.1.0",
+  "proxy": "https://api.worldoffice.cloud/api/v1",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
@@ -15,6 +16,7 @@
     "dotenv": "^16.4.5",
     "file-saver": "^2.0.5",
     "formik": "^2.4.5",
+    "http-proxy-middleware": "^3.0.2",
     "path-browserify": "^1.0.1",
     "pdfjs-dist": "^4.2.67",
     "primefaces": "^13.0.0",
@@ -42,7 +44,6 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "https://api.worldoffice.cloud",
   "eslintConfig": {
     "extends": [
       "react-app",

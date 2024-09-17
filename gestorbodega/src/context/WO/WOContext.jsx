@@ -51,9 +51,9 @@ const WOProvider = ({ children }) => {
     });
   };
 
-  /* listar productos  */
   const ListarProductosWO = async () => {
     try {
+      
       const body = {
         columnaOrdenar: "id",
         pagina: 0,
@@ -63,15 +63,14 @@ const WOProvider = ({ children }) => {
         canal: 0,
         registroInicial: 0,
       };
-      const response = await axios.post("https://api.worldoffice.cloud/inventarios/listarInventarios", body, {
+      const response = await axios.post("/inventarios/listarInventarios", body, {
         headers: {
           "Content-Type": "application/json",
-
           Authorization: `WO ${tokenWo}`,
         },
       });
       console.log(response);
-      console.log("Respuesta:", response.data);
+      console.log("Respuestaaaaa:", response.data);
     } catch (error) {
       if (error.response) {
         // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
@@ -87,7 +86,7 @@ const WOProvider = ({ children }) => {
         // Algo ocurrió al configurar la solicitud
         console.error("Error desconocido:", error.message);
       }
-
+  
       console.error("Error al obtener los productos:", error);
     }
   };
