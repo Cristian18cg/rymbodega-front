@@ -57,10 +57,10 @@ const WOProvider = ({ children }) => {
       const body = {
         columnaOrdenar: "id",
         pagina: 0,
-        registrosPorPagina: 10,
+        registrosPorPagina:1278,
         orden: "DESC",
         filtros: [],
-        canal: 0,
+        canal:2,
         registroInicial: 0,
       };
       const response = await axios.post("/inventarios/listarInventarios", body, {
@@ -69,9 +69,14 @@ const WOProvider = ({ children }) => {
           Authorization: `WO ${tokenWo}`,
         },
       });
-      console.log(response);
-      console.log("Respuestaaaaa:", response.data);
+      
+      console.log("Respuestaaaaa:", response);
+      console.log("Respuesta:", response.data.data.content);
+      setlistaProductosW_O(response.data.data.content.slice())
+      ConsultarProducto("1101")
     } catch (error) {
+      FuncionErrorToken(error)
+    
       if (error.response) {
         // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
         console.error(
@@ -90,6 +95,39 @@ const WOProvider = ({ children }) => {
       console.error("Error al obtener los productos:", error);
     }
   };
+
+  const ConsultarProducto = async (codigo) => {
+    try {
+      
+      const response = await axios.get(`/inventarios/consultaCodigo/${codigo}`,  {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `WO ${tokenWo}`,
+        },
+      });
+      console.log("Respuestaaaaa:", response);
+      console.log("Respuesta:", response.data.data.content);
+    } catch (error) {
+    
+      if (error.response) {
+        // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
+        console.error(
+          "Error en la respuesta del servidor:",
+          error.response.data
+        );
+        console.error("Estado:", error.response.status);
+      } else if (error.request) {
+        // La solicitud fue hecha pero no se recibió respuesta
+        console.error("Error en la solicitud:", error.request);
+      } else {
+        // Algo ocurrió al configurar la solicitud
+        console.error("Error desconocido:", error.message);
+      }
+      showError(`Error al obtener el producto: ${error.message}`);
+      console.error("Error al obtener el productos:", error);
+    }
+  }; 
+
   /*   const ModificarProducto = async (idProducto, campo, valor) => {
     try {
       const valorComoCadena = valor.toString();

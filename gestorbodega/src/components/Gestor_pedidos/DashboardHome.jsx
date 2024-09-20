@@ -19,11 +19,7 @@ export const DashboardHome = () => {
     // Llama a la función asincrónica para obtener- los datos
     delayedRequest();
   }, []);
-  useEffect(() => {
-    // Llama a la función asincrónica para obtener- los datos
-    console.log(estadisticas);
-    console.log(estadisticas.pedidos_por_dia);
-  }, [estadisticas]);
+
   const generarColores = (num) => {
     const colores = [];
     for (let i = 0; i < num; i++) {
@@ -144,14 +140,14 @@ export const DashboardHome = () => {
   }, [estadisticas]);
 
   return (
-    <div className="row mt-2">
+    <div className="row mt-2" style={{width:"100%"}}>
       <div className="col-md-12 mt-2 ">
-        <div className="card">
+        <div className="card d-flex  justify-content-center align-items-center">
           <Chart
             type="bar"
             data={chartData}
             options={chartOptions}
-            style={{ width: "90vw", height: "40vh" }}
+            style={{width: "90vw", height:"50vh" }}
           />
         </div>
       </div>

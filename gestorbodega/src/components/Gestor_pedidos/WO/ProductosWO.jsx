@@ -32,12 +32,9 @@ export const ProductosWO = () => {
       useEffect(() => {
         // Llama a la función asincrónica para obtener los datos
         delayedRequest();
+        initFilters();
       }, []);
    
-      useEffect(() => {
-        console.log(listaProductosW_O)
-        // Llama a la función asincrónica para obtener los datos
-      }, [ listaProductosW_O]);
       const showError = (error) => {
         const Toast = Swal.mixin({
           toast: true,
@@ -120,7 +117,7 @@ export const ProductosWO = () => {
 
   return (
     <div className="row">
-    {listaProductosW_O.length > 0 ? (
+    {listaProductosW_O?.length > 0 ? (
       <div className="col-md-12 ">
         <DataTable
           header={header}
@@ -129,7 +126,7 @@ export const ProductosWO = () => {
           rowsPerPageOptions={[10, 20, 50]}
           value={listaProductosW_O}
           filters={filters}
-          globalFilterFields={["name", "price", "categories.name"]}
+          globalFilterFields={["codigo", "descripcion"]}
           emptyMessage="No se encontraron productos"
           scrollable
           tableStyle={{ minWidth: "50rem" }}
@@ -141,20 +138,45 @@ export const ProductosWO = () => {
           <Column
             style={{ minWidth: "0.5rem" }}
             sortable
-            field="sku"
-            header="SKU"
+            field="codigo"
+            header="codigo"
             body={(data) => {
-              return data.sku ? data.sku : "No tiene";
+              return data.codigo ? data.codigo : "No tiene";
             }}
           />
 
           <Column
             style={{ minWidth: "5rem" }}
             sortable
-            field="name"
+            field="descripcion"
             header="Nombre Completo"
           />
           <Column
+            style={{ minWidth: "0.5rem" }}
+            sortable
+            field="grupo"
+            header="Grupo"
+            body={(data) => {
+              return data.grupo[0]?.nombreGrupo ? data.grupo[0]?.nombreGrupo : "No tiene";
+            }}
+          />
+            <Column
+            style={{ minWidth: "0.5rem" }}
+            sortable
+            field="inventarioClasificacion"
+            header="Clasificacion"
+            body={(data) => {
+              return data.inventarioClasificacion.nombre ? data.inventarioClasificacion.nombre : "No tiene";
+            }}
+          />
+            <Column
+            style={{ minWidth: "0.5rem" }}
+            sortable
+            field="senFavorito"
+            header="Favorito"
+            
+          />
+          {/* <Column
             sortable
             field="regular_price"
             header="Precio Regular"
@@ -163,39 +185,10 @@ export const ProductosWO = () => {
                 style: "currency",
                 currency: "COP",
                 maximumFractionDigits: "0",
-              }).format(rowData.regular_price)
+              }).format(rowData?.regular_price)
             }
-          />
-          <Column
-            sortable
-            field="sale_price"
-            header="Precio decuento"
-            body={(rowData) =>
-              new Intl.NumberFormat("es-CO", {
-                style: "currency",
-                currency: "COP",
-                maximumFractionDigits: "0",
-              }).format(rowData.sale_price)
-            }
-          />
-          <Column
-            sortable
-            field="categories"
-            header="Categoria padre"
-            body={(rowData) => rowData.categories[0]?.name}
-          />
-          <Column
-            sortable
-            field="categories"
-            header="Categoria hijo"
-            body={(rowData) => rowData.categories[1]?.name}
-          />
-          <Column sortable field="stock_quantity" header="Stock" />
-          <Column
-            sortable
-            field="stock_status"
-            header="Stock Estado"
-          />
+          /> */}
+        
         </DataTable>
       </div>
     ) : (

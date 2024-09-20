@@ -28,10 +28,7 @@ export const ListaProductos = () => {
     // Llama a la función asincrónica para obtener los datos
     initFilters();
   }, []);
-  useEffect(() => {
-    console.log(listaProductos);
-    // Llama a la función asincrónica para obtener los datos
-  }, [listaProductos]);
+
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
 
@@ -365,7 +362,7 @@ export const ListaProductos = () => {
             rowsPerPageOptions={[10, 20, 50]}
             value={listaProductos}
             filters={filters}
-            globalFilterFields={["name", "price", "categories.name"]}
+            globalFilterFields={["sku","name", "price", "categories.name"]}
             emptyMessage="No se encontraron productos"
             scrollable
             tableStyle={{ minWidth: "50rem" }}

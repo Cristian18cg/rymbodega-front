@@ -7,8 +7,12 @@ const WoocomerceContextControl = createContext();
 const WoocomercePovider = ({ children }) => {
   const { token, usuario } = useControl();
   const [listaProductos, setlistaProductos] = useState("");
-  const [tokenWoo, settokenWoo] = useState(process.env.REACT_APP_WOOCOMERCE_TOKEN);
-  const [tokenWoo2, settokenWoo2] = useState(process.env.REACT_APP_WOOCOMERCE_TOKEN2);
+  const [tokenWoo, settokenWoo] = useState(
+    process.env.REACT_APP_WOOCOMERCE_TOKEN
+  );
+  const [tokenWoo2, settokenWoo2] = useState(
+    process.env.REACT_APP_WOOCOMERCE_TOKEN2
+  );
 
   const showError = (error) => {
     const Toast = Swal.mixin({
@@ -56,7 +60,7 @@ const WoocomercePovider = ({ children }) => {
       const ConsumerKey = tokenWoo;
       const consumerSecret = tokenWoo2;
       const perPage = 100; // Número máximo de productos por página permitido por WooCommerce
-  
+
       // Solicitud inicial para obtener el número total de productos y páginas
       const initialResponse = await wooAxios.get("wp-json/wc/v3/products", {
         auth: {
@@ -68,11 +72,14 @@ const WoocomercePovider = ({ children }) => {
           page: 1,
         },
       });
-  
+
       // Obtener el número total de productos desde los encabezados de respuesta
       const totalProducts = parseInt(initialResponse.headers["x-wp-total"], 10);
-      const totalPages = parseInt(initialResponse.headers["x-wp-totalpages"], 10);
-  
+      const totalPages = parseInt(
+        initialResponse.headers["x-wp-totalpages"],
+        10
+      );
+
       // Crear una matriz de promesas para solicitudes a todas las páginas
       const requests = [];
       for (let page = 1; page <= totalPages; page++) {
@@ -89,15 +96,15 @@ const WoocomercePovider = ({ children }) => {
           })
         );
       }
-  
+
       // Esperar a que todas las solicitudes se completen
       const responses = await Promise.all(requests);
-  
+
       // Combinar todos los productos en una sola matriz
       const allProducts = responses.reduce((accumulator, response) => {
         return accumulator.concat(response.data);
       }, []);
-  
+
       console.log(`Total de productos obtenidos: ${allProducts.length}`);
       setlistaProductos(allProducts);
     } catch (error) {
@@ -111,18 +118,22 @@ const WoocomercePovider = ({ children }) => {
       const valorComoCadena = valor.toString();
       const ConsumerKey = tokenWoo;
       const consumerSecret = tokenWoo2;
-  
+
       const dataActualizacion = {
         [campo]: valorComoCadena,
       };
-  
-      const response = await wooAxios.put(`wp-json/wc/v3/products/${idProducto}`, dataActualizacion, {
-        auth: {
-          username: ConsumerKey,
-          password: consumerSecret,
-        },
-      });
-   showSuccess("Producto actualizado con exito", response.data)
+
+      const response = await wooAxios.put(
+        `wp-json/wc/v3/products/${idProducto}`,
+        dataActualizacion,
+        {
+          auth: {
+            username: ConsumerKey,
+            password: consumerSecret,
+          },
+        }
+      );
+      showSuccess("Producto actualizado con exito", response.data);
       return response.data; // Devuelve los datos del producto actualizado si lo necesitas
     } catch (error) {
       FuncionErrorToken(error);
@@ -136,12 +147,8 @@ const WoocomercePovider = ({ children }) => {
     if (error?.response?.status === 401) {
       window.location.reload();
       showError("Tu token se vencio, por favor vuelve a iniciar sesión.");
-    } else if (
-      error.response &&
-      error.response.data &&
-      error.response.data.error
-    ) {
-      showError(error?.response?.data.error);
+    } else if (error.response.data.message) {
+      showError(error?.response?.data?.message);
     } else {
       showError("Ha ocurrido un error!");
     }
@@ -151,8 +158,8 @@ const WoocomercePovider = ({ children }) => {
     return {
       listaProductos,
       setlistaProductos,
-     ListarProductos,
-     ModificarProducto
+      ListarProductos,
+      ModificarProducto,
     };
   }, [listaProductos, setlistaProductos, ListarProductos]);
 
