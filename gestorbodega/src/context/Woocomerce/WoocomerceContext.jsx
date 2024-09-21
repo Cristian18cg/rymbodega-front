@@ -2,11 +2,14 @@ import { useState, createContext, useEffect, useMemo } from "react";
 import wooAxios from "../../config/urlWoo";
 import Swal from "sweetalert2";
 import useControl from "../../hooks/useControl";
+import axios from "axios";
+
 const WoocomerceContextControl = createContext();
 
 const WoocomercePovider = ({ children }) => {
   const { token, usuario } = useControl();
   const [listaProductos, setlistaProductos] = useState("");
+  const [ListaPedido, setListaPedido] = useState("");
   const [tokenWoo, settokenWoo] = useState(
     process.env.REACT_APP_WOOCOMERCE_TOKEN
   );
@@ -141,7 +144,35 @@ const WoocomercePovider = ({ children }) => {
       // Maneja el error según sea necesario, como mostrar una notificación al usuario.
     }
   };
+  const ListarVentas = async () => {
+    try {
+      const ConsumerKey = tokenWoo;
+      const consumerSecret = tokenWoo2;
+      // Obtén la fecha de hoy a las 00:00:00 en formato ISO
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Establece las horas, minutos, segundos y milisegundos a 0
+      const todayISO = today.toISOString(); // Convertir a formato ISO
 
+      const response = await wooAxios.get(
+        `wp-json/wc/v3/orders?after=${todayISO}`,
+
+        {
+          auth: {
+            username: ConsumerKey,
+            password: consumerSecret,
+          },
+        }
+      );
+      console.log(response.data);
+      setListaPedido(response.data);
+    } catch (error) {
+      FuncionErrorToken(error);
+      console.error("Error obteniendo pedidos:", error);
+      // Maneja el error según sea necesario, como mostrar una notificación al usuario.
+    }
+  };
+
+ 
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
     if (error?.response?.status === 401) {
@@ -157,11 +188,23 @@ const WoocomercePovider = ({ children }) => {
   const contextValue = useMemo(() => {
     return {
       listaProductos,
+      ListaPedido,
+      
+      setListaPedido,
       setlistaProductos,
       ListarProductos,
       ModificarProducto,
+      ListarVentas,
     };
-  }, [listaProductos, setlistaProductos, ListarProductos]);
+  }, [
+    listaProductos,
+    ListaPedido,
+    
+    setListaPedido,
+    setlistaProductos,
+    ListarProductos,
+    ListarVentas,
+  ]);
 
   return (
     <WoocomerceContextControl.Provider value={contextValue}>

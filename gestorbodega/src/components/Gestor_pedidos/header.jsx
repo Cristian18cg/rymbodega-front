@@ -275,6 +275,9 @@ const Header = () => {
                 <NavDropdown.Item as={Link} to="/woocomerce/productos">
                   <i className="pi pi-shopping-bag" /> Productos
                 </NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/woocomerce/pedidos">
+                  <i className="pi pi-car" /> Pedidos
+                </NavDropdown.Item>
               </NavDropdown>
               {/* worldoffice */}
               <NavDropdown id="basic-nav-dropdown" title="World Office">

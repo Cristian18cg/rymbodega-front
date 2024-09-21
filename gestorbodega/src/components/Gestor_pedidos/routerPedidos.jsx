@@ -7,9 +7,10 @@ import {Lista_entregas} from './Lista_entregas'
 import {Historico_Entregas} from './historico_entregas/Historico_Entregas'
 import useControl from '../../hooks/useControl'
 import { ListaProductos } from "./Woocomerce/ListaProductos";
+import {ListaPedidosWoo} from './Woocomerce/ListaPedidosWoo'
+import { ProductosWO } from "./WO/ProductosWO";
 
 import Home from "./Home";
-import { ProductosWO } from "./WO/ProductosWO";
 
 const RouterPedidos = () => {
     const {jsonlogin} = useControl()
@@ -27,6 +28,7 @@ const RouterPedidos = () => {
                  <Route path="lista/historico_entregas" element={<Historico_Entregas  />} />
                  <Route path="woocomerce/productos" element={<ListaProductos  />} />
                  <Route path="worldoffice/productos" element={<ProductosWO  />} />
+                 <Route path="woocomerce/pedidos" element={<ListaPedidosWoo  />} />
             </Routes>
         </Router>     
     
