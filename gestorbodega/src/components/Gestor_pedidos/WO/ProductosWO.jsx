@@ -135,6 +135,15 @@ export const ProductosWO = () => {
           editMode="cell"
           stripedRows
         >
+           <Column
+            style={{ minWidth: "0.5rem" }}
+            sortable
+            field="id"
+            header="id"
+            body={(data) => {
+              return data.id ? data.id : "No tiene";
+            }}
+          />
           <Column
             style={{ minWidth: "0.5rem" }}
             sortable

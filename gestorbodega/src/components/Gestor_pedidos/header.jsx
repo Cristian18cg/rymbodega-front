@@ -284,6 +284,9 @@ const Header = () => {
                 <NavDropdown.Item as={Link} to="/worldoffice/productos">
                   <i className="pi pi-shopping-bag" /> Productos WO
                 </NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/worldoffice/terceros">
+                  <i className="pi pi-user" /> Terceros WO
+                </NavDropdown.Item>
               </NavDropdown>
               <i className="bi-person-circle mi-icono "></i>
               <NavDropdown id="basic-nav-dropdown" title={usuario}>

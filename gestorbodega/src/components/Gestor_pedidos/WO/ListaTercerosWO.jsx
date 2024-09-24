@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FilterMatchMode, FilterOperator } from "primereact/api";
-import useControl_WO from "../../../../hooks/useControl_WO";
-import useControl_Woocomerce from "../../../../hooks/useControl_Woocomerce";
+import useControl_Pedidos from "../../../hooks/useControl_Pedidos";
+import useControl_Woocomerce from "../../../hooks/useControl_Woocomerce";
+import useControl_WO from "../../../hooks/useControl_WO";
 import { Navbar, Container, Nav } from "react-bootstrap";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -15,15 +16,24 @@ import { Menubar } from "primereact/menubar";
 import { MultiSelect } from "primereact/multiselect";
 import Swal from "sweetalert2";
 import { Skeleton } from "primereact/skeleton";
+import { Dialog } from "primereact/dialog";
 
-export const PedidoWoo = (pedido) => {
-  const { ListarVentas, ListaPedido, setListaPedido } = useControl_Woocomerce();
-  const { CrearDocumentoVenta } = useControl_WO();
+export const ListaTercerosWO = () => {
+  const { ListarTerceros, listaTerceros, setlistaTerceros } = useControl_WO();
+  const [visiblePedidos, setVisiblePedidos] = useState(false);
+  const [nomPedido, setnomPedido] = useState("false");
+  const [infoPedido, setinfoPedido] = useState("false");
+  useEffect(() => {
+    if (listaTerceros.length === 0) {
+      ListarTerceros();
+    }
+
+    initFilters();
+  }, [listaTerceros]);
+
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
-  useEffect(() => {
-    console.log("repedido", pedido.pedido);
-  }, [pedido]);
+
   const showError = (error) => {
     const Toast = Swal.mixin({
       toast: true,
@@ -68,8 +78,8 @@ export const PedidoWoo = (pedido) => {
   const imageBodyTemplate = (product) => {
     return (
       <img
-        src={product?.image?.src}
-        alt={product.image.id}
+        src={product?.images[0]?.src}
+        alt={product.image}
         className="w-6rem shadow-2 border-round"
         style={{ height: "5vw", width: "5vw" }}
       />
@@ -174,15 +184,7 @@ export const PedidoWoo = (pedido) => {
         icon="pi pi-refresh"
         outlined
         className="btn btn-outline-primary color-icon p-1"
-        onClick={ListarVentas}
-      />
-      <Button
-        type="button"
-        label="Crear pedido"
-        icon="pi pi-plus"
-        outlined
-        className="btn btn-outline-primary color-icon p-1"
-        onClick={() => CrearDocumentoVenta(pedido.pedido)}
+        onClick={ListarTerceros}
       />
     </div>
   );
@@ -192,23 +194,6 @@ export const PedidoWoo = (pedido) => {
       <Menubar start={start} end={end} className="p-header-datatable2  " />
     );
   };
-  const footer = `Valor total pedido: ${
-    pedido.pedido.total
-      ? new Intl.NumberFormat("es-CO", {
-          style: "currency",
-          currency: "COP",
-          maximumFractionDigits: "0",
-        }).format(pedido.pedido.total)
-      : ""
-  }   descuento total: -${
-    pedido.pedido.total
-      ? new Intl.NumberFormat("es-CO", {
-          style: "currency",
-          currency: "COP",
-          maximumFractionDigits: "0",
-        }).format(pedido.pedido.discount_total)
-      : ""
-  }`;
 
   const [statuses] = useState(["instock", "lowstock", "outofstock"]);
 
@@ -235,83 +220,94 @@ export const PedidoWoo = (pedido) => {
 
   return (
     <div className="row">
-      {pedido ? (
+  
+      {listaTerceros?.length > 0 ? (
         <div className="col-md-12 ">
           <DataTable
             header={header}
             rows={10}
-            value={pedido.pedido.line_items}
+            paginator
+            rowsPerPageOptions={[10, 20, 50]}
+            value={listaTerceros}
             filters={filters}
-            globalFilterFields={["id", "name", "total", "quantity"]}
-            emptyMessage="No se encontraron productos"
+            globalFilterFields={[
+              "id",
+            'tipoIdentificacion',
+            'identificacion',
+            'nombreCompleto'
+            ]}
+            emptyMessage="No se encontraron terceros"
             scrollable
             tableStyle={{ minWidth: "50rem" }}
             removableSort
             className="header-woo"
             editMode="cell"
             stripedRows
-            footer={footer}
           >
+        
             <Column
               style={{ minWidth: "0.5rem" }}
               sortable
-              field="sku"
-              header="SKU"
+              field="id"
+              header="ID"
+            />
+
+            <Column
+              style={{ minWidth: "5rem" }}
+              sortable
+              field="tipoIdentificacion"
+              header="Tipo Identificacion"
+          
             />
             <Column
               style={{ minWidth: "5rem" }}
               sortable
-              field="quantity"
-              header="Cantidad"
+              field="identificacion"
+              header="Identificacion"
             />
             <Column
               style={{ minWidth: "5rem" }}
               sortable
-              field="name"
-              header="Nombre"
-            />
-            <Column header="Image" body={imageBodyTemplate}></Column>
-
-            <Column
-              sortable
-              field="total"
-              header="Total"
-              body={(rowData) =>
-                new Intl.NumberFormat("es-CO", {
-                  style: "currency",
-                  currency: "COP",
-                  maximumFractionDigits: "0",
-                }).format(rowData.total)
-              }
+              field="nombreCompleto"
+              header="nombreCompleto"
             />
 
-            {/*  <Column
-              sortable
-              field="status"
-              header="Estado"
-              body={statusBodyTemplate}
-            /> */}
           </DataTable>
         </div>
       ) : (
         <div className="card">
           <DataTable value={items} className="p-datatable-striped">
-            <Column field="sku" header="SKU" body={<Skeleton />}></Column>
-            <Column
-              field="name"
-              header="Nombre Completo"
-              style={{ width: "25%" }}
-              body={<Skeleton />}
-            ></Column>
-
-            <Column
+          <Column
+              style={{ minWidth: "0.5rem" }}
               sortable
-              field="quantity"
-              header="Cantidad"
+              field="id"
+              header="ID"
               body={<Skeleton />}
             />
-            <Column sortable field="name" header="Nombre" body={<Skeleton />} />
-            <Column sortable field="total" header="Total" body={<Skeleton />} />
+
+            <Column
+              style={{ minWidth: "5rem" }}
+              sortable
+              field="tipoIdentificacion"
+              header="Tipo Identificacion"
+              body={<Skeleton />}
+          
+            />
+            <Column
+              style={{ minWidth: "5rem" }}
+              sortable
+              field="identificacion"
+              header="Identificacion"
+              body={<Skeleton />}
+            />
+            <Column
+              style={{ minWidth: "5rem" }}
+              sortable
+              field="nombreCompleto"
+              header="nombreCompleto"
+              body={<Skeleton />}
+            />
+           
           </DataTable>
         </div>
       )}

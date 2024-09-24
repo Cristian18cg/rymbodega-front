@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { FilterMatchMode, FilterOperator } from "primereact/api";
 import useControl_Pedidos from "../../../hooks/useControl_Pedidos";
 import useControl_Woocomerce from "../../../hooks/useControl_Woocomerce";
+import useControl_WO from "../../../hooks/useControl_WO";
 import { Navbar, Container, Nav } from "react-bootstrap";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -16,19 +17,21 @@ import { MultiSelect } from "primereact/multiselect";
 import Swal from "sweetalert2";
 import { Skeleton } from "primereact/skeleton";
 import { Dialog } from "primereact/dialog";
-import {PedidoWoo} from './Pedido/PedidoWoo'
+import { PedidoWoo } from "./Pedido/PedidoWoo";
 
 export const ListaPedidosWoo = () => {
   const { ListarVentas, ListaPedido, setListaPedido } = useControl_Woocomerce();
-  const [visiblePedidos, setVisiblePedidos] = useState(false)
-  const [nomPedido, setnomPedido] = useState("false")
-  const [infoPedido, setinfoPedido] = useState("false")
+  const { ListarProductosWO, listaProductosW_O } = useControl_WO();
+  const [visiblePedidos, setVisiblePedidos] = useState(false);
+  const [nomPedido, setnomPedido] = useState("false");
+  const [infoPedido, setinfoPedido] = useState("false");
   useEffect(() => {
     if (ListaPedido.length === 0) {
       ListarVentas();
     }
-    console.log("pedidos", ListaPedido);
-    // Llama a la función asincrónica para obtener los datos
+    if (listaProductosW_O.length === 0) {
+      ListarProductosWO();
+    }
     initFilters();
   }, [ListaPedido]);
 
@@ -100,6 +103,8 @@ export const ListaPedidosWoo = () => {
       case "on-hold":
         return "warning";
 
+      case "completed":
+        return "primary";
       case "processing":
         return "success";
 
@@ -151,6 +156,8 @@ export const ListaPedidosWoo = () => {
 
       case "canceled":
         return "cancelado";
+      case "completed":
+        return "Completo";
 
       default:
         return null;
@@ -221,17 +228,17 @@ export const ListaPedidosWoo = () => {
 
   return (
     <div className="row">
-        <Dialog
-          header={`Pedido de ${nomPedido} `}
-          visible={visiblePedidos}
-          onHide={() => {
-            setVisiblePedidos(false);
-          }}
-          maximizable
-          style={{ width: "98vw", height: "95vh" }}
-        >
-         <PedidoWoo pedido={infoPedido} />
-        </Dialog>
+      <Dialog
+        header={`Pedido de ${nomPedido} `}
+        visible={visiblePedidos}
+        onHide={() => {
+          setVisiblePedidos(false);
+        }}
+        maximizable
+        style={{ width: "80vw", height: "95vh" }}
+      >
+        <PedidoWoo pedido={infoPedido} />
+      </Dialog>
       {ListaPedido?.length > 0 ? (
         <div className="col-md-12 ">
           <DataTable
@@ -266,8 +273,10 @@ export const ListaPedidosWoo = () => {
                     className="color-icon2"
                     onClick={() => {
                       setVisiblePedidos(true);
-                      setnomPedido(`${rowData.billing.first_name} ${rowData.billing.last_name}`)
-                      setinfoPedido(rowData)
+                      setnomPedido(
+                        `${rowData.billing.first_name} ${rowData.billing.last_name}`
+                      );
+                      setinfoPedido(rowData);
                     }}
                   />
                 );
