@@ -21,7 +21,7 @@ import { PedidoWoo } from "./Pedido/PedidoWoo";
 
 export const ListaPedidosWoo = () => {
   const { ListarVentas, ListaPedido, setListaPedido } = useControl_Woocomerce();
-  const { ListarProductosWO, listaProductosW_O } = useControl_WO();
+  const { ListarProductosWO, listaProductosW_O,ListarTerceros,listaTerceros } = useControl_WO();
   const [visiblePedidos, setVisiblePedidos] = useState(false);
   const [nomPedido, setnomPedido] = useState("false");
   const [infoPedido, setinfoPedido] = useState("false");
@@ -31,6 +31,8 @@ export const ListaPedidosWoo = () => {
     }
     if (listaProductosW_O.length === 0) {
       ListarProductosWO();
+    } if (listaTerceros.length === 0) {
+      ListarTerceros();
     }
     initFilters();
   }, [ListaPedido]);
