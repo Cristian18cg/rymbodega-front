@@ -694,7 +694,7 @@ const WOProvider = ({ children }) => {
       console.error("Error al obtener el productos:", error);
     }
   };
-  const TicketVenta = async (id) => {
+/*   const TicketVenta = async (id) => {
     try {
       const body = {
         columnaOrdenar: "id",
@@ -748,7 +748,52 @@ const WOProvider = ({ children }) => {
       showError(`Error contabilizar el pedido: ${error.message}`);
       console.error("Error al obtener el productos:", error);
     }
+  }; */
+  const TicketVenta = async (id) => {
+    try {
+      const response = await axios.get(`/documentos/ticketDocumento/` + id, {
+        headers: {
+          Authorization: `WO ${tokenWo}`,
+        },
+        responseType: "arraybuffer", // Asegurarse de que el PDF se maneje como binario
+      });
+  
+      // Crear un Blob para el PDF
+      const blob = new Blob([response.data], { type: "application/pdf" });
+  
+      // Crear una URL para el Blob
+      const url = window.URL.createObjectURL(blob);
+  
+      // Crear un iframe dinámicamente
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none"; // Esconder el iframe
+      iframe.src = url;
+  
+      // Añadir el iframe al body del documento
+      document.body.appendChild(iframe);
+  
+      // Esperar a que el iframe cargue el PDF y luego llamar a imprimir
+      iframe.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      };
+  
+      // Mostrar mensaje de éxito
+      showSuccess("Ticket en PDF generado correctamente.");
+    } catch (error) {
+      if (error.response) {
+        console.error("Error en la respuesta del servidor:", error.response.data);
+        console.error("Estado:", error.response.status);
+      } else if (error.request) {
+        console.error("Error en la solicitud:", error.request);
+      } else {
+        console.error("Error desconocido:", error.message);
+      }
+      showError(`Error al generar el ticket: ${error.message}`);
+      console.error("Error al obtener el productos:", error);
+    }
   };
+  
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
     if (error?.response?.status === 401) {
