@@ -166,6 +166,39 @@ export const ListaPedidosWoo = () => {
     }
   };
 
+  const exportExcel = () => {
+    import("xlsx").then((xlsx) => {
+      const worksheet = xlsx.utils.json_to_sheet(ListaPedido);
+      const workbook = {
+        Sheets: { data: worksheet },
+        SheetNames: ["data"],
+      };
+      const excelBuffer = xlsx.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+
+      saveAsExcelFile(excelBuffer,  `Lista pedidos woocomerce `);
+    });
+  };
+  /* guarda el excel */
+  const saveAsExcelFile = (buffer, fileName) => {
+    import("file-saver").then((module) => {
+      if (module && module.default) {
+        let EXCEL_TYPE =
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
+        let EXCEL_EXTENSION = ".xlsx";
+        const data = new Blob([buffer], {
+          type: EXCEL_TYPE,
+        });
+
+        module.default.saveAs(
+          data,
+          fileName + "_export_" + new Date().getTime() + EXCEL_EXTENSION
+        );
+      }
+    });
+  };
   const start = (
     <div className="d-flex justify-content-between">
       <Button
@@ -196,14 +229,24 @@ export const ListaPedidosWoo = () => {
         className="btn btn-outline-primary color-icon p-1"
         onClick={ListarVentas}
       />
+       <Button
+                  type="button"
+                  icon="pi pi-file-excel"
+                  className=" btn btn-outline-primary color-icon p-1"
+                  outlined
+                  rounded
+                  onClick={exportExcel}
+                  data-pr-tooltip="XLS"
+                />
     </div>
   );
-
   const header = () => {
     return (
       <Menubar start={start} end={end} className="p-header-datatable2  " />
     );
   };
+
+
 
   const [statuses] = useState(["instock", "lowstock", "outofstock"]);
 

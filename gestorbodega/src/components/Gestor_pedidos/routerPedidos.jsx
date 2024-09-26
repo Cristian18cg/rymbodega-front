@@ -12,6 +12,7 @@ import { ProductosWO } from "./WO/ProductosWO";
 
 import Home from "./Home";
 import { ListaTercerosWO } from "./WO/ListaTercerosWO";
+import { ListaVentasWO } from "./WO/ListaVentasWO";
 
 const RouterPedidos = () => {
     const {jsonlogin} = useControl()
@@ -30,6 +31,7 @@ const RouterPedidos = () => {
                  <Route path="woocomerce/productos" element={<ListaProductos  />} />
                  <Route path="worldoffice/productos" element={<ProductosWO  />} />
                  <Route path="worldoffice/terceros" element={<ListaTercerosWO  />} />
+                 <Route path="worldoffice/ventas" element={<ListaVentasWO  />} />
                  <Route path="woocomerce/pedidos" element={<ListaPedidosWoo  />} />
             </Routes>
         </Router>     

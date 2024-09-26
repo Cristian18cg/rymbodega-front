@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FilterMatchMode, FilterOperator } from "primereact/api";
-import useControl_WO from "../../../../hooks/useControl_WO";
-import useControl_Woocomerce from "../../../../hooks/useControl_Woocomerce";
+import useControl_Pedidos from "../../../hooks/useControl_Pedidos";
+import useControl_Woocomerce from "../../../hooks/useControl_Woocomerce";
+import useControl_WO from "../../../hooks/useControl_WO";
 import { Navbar, Container, Nav } from "react-bootstrap";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -15,15 +16,27 @@ import { Menubar } from "primereact/menubar";
 import { MultiSelect } from "primereact/multiselect";
 import Swal from "sweetalert2";
 import { Skeleton } from "primereact/skeleton";
+import { Dialog } from "primereact/dialog";
+import { PedidoWO } from "./pedidoWO/PedidoWO";
 
-export const PedidoWoo = (pedido) => {
-  const { ListarVentas, ListaPedido, setListaPedido } = useControl_Woocomerce();
-  const { CrearDocumentoVenta,loadingPedido} = useControl_WO();
+export const ListaVentasWO = () => {
+  const { listaventasWO, setlistaventasWO, ListarDocumentoVenta,TicketVenta } =
+    useControl_WO();
+  const [visiblePedidos, setVisiblePedidos] = useState(false);
+  const [nomPedido, setnomPedido] = useState("false");
+  const [infoPedido, setinfoPedido] = useState("false");
+
+  useEffect(() => {
+    if (listaventasWO.length === 0) {
+      ListarDocumentoVenta();
+    }
+    console.log(listaventasWO);
+    initFilters();
+  }, [listaventasWO]);
+
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
-  useEffect(() => {
-    console.log("repedido", pedido.pedido);
-  }, [pedido]);
+
   const showError = (error) => {
     const Toast = Swal.mixin({
       toast: true,
@@ -68,8 +81,8 @@ export const PedidoWoo = (pedido) => {
   const imageBodyTemplate = (product) => {
     return (
       <img
-        src={product?.image?.src}
-        alt={product.image.id}
+        src={product?.images[0]?.src}
+        alt={product.image}
         className="w-6rem shadow-2 border-round"
         style={{ height: "5vw", width: "5vw" }}
       />
@@ -174,25 +187,7 @@ export const PedidoWoo = (pedido) => {
         icon="pi pi-refresh"
         outlined
         className="btn btn-outline-primary color-icon p-1"
-        onClick={ListarVentas}
-      />
-      <Button
-        type="button"
-        label="Crear pedido"
-        icon="pi pi-plus"
-        outlined
-        className="btn btn-outline-primary color-icon p-1"
-        onClick={() => CrearDocumentoVenta(pedido.pedido)}
-        loading={loadingPedido}
-      />
-         <Button
-        type="button"
-        label="Crear pedido CF"
-        icon="pi pi-user"
-        outlined
-        className="btn btn-outline-primary color-icon p-1"
-        onClick={() => CrearDocumentoVenta(pedido.pedido,108)}
-        loading={loadingPedido}
+        onClick={ListarDocumentoVenta}
       />
     </div>
   );
@@ -202,23 +197,6 @@ export const PedidoWoo = (pedido) => {
       <Menubar start={start} end={end} className="p-header-datatable2  " />
     );
   };
-  const footer = `Valor total pedido: ${
-    pedido.pedido.total
-      ? new Intl.NumberFormat("es-CO", {
-          style: "currency",
-          currency: "COP",
-          maximumFractionDigits: "0",
-        }).format(pedido.pedido.total)
-      : ""
-  }   descuento total: -${
-    pedido.pedido.total
-      ? new Intl.NumberFormat("es-CO", {
-          style: "currency",
-          currency: "COP",
-          maximumFractionDigits: "0",
-        }).format(pedido.pedido.discount_total)
-      : ""
-  }`;
 
   const [statuses] = useState(["instock", "lowstock", "outofstock"]);
 
@@ -242,18 +220,58 @@ export const PedidoWoo = (pedido) => {
     );
   };
   const items = Array.from({ length: 15 }, (v, i) => i);
+  const footer = () => {
+    // Asumiendo que tienes acceso a un array global llamado 'productosTotales' con todos los productos
+    if (listaventasWO && Array.isArray(listaventasWO)) {
+      // Sumar el precioRenglon de todos los productos de la tabla
+      const totalFooter = listaventasWO.reduce((total, pedido) => {
+        const precio = parseFloat(pedido.totalPedido) || 0;
+        return total + precio;
+      }, 0);
+
+      const totalFormatted = new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(totalFooter);
+
+      return <h5>Total Dia: {totalFormatted}</h5>;
+    } else {
+      return <strong>0.00</strong>;
+    }
+  };
 
   return (
     <div className="row">
-      {pedido ? (
+      <Dialog
+        header={`Pedido de woocomerce ${nomPedido} `}
+        visible={visiblePedidos}
+        onHide={() => {
+          setVisiblePedidos(false);
+        }}
+        maximizable
+        style={{ width: "80vw", height: "95vh" }}
+      >
+        <PedidoWO pedido={infoPedido} />
+      </Dialog>
+      {listaventasWO?.length > 0 ? (
         <div className="col-md-12 ">
           <DataTable
             header={header}
             rows={10}
-            value={pedido.pedido.line_items}
+            paginator
+            rowsPerPageOptions={[10, 20, 50]}
+            value={listaventasWO}
             filters={filters}
-            globalFilterFields={["id", "name", "total", "quantity"]}
-            emptyMessage="No se encontraron productos"
+            globalFilterFields={[
+              "id",
+              "prefijo",
+              "terceroExterno",
+              "concepto",
+              "fecha",
+            ]}
+            emptyMessage="No se encontraron ventas de la api"
             scrollable
             tableStyle={{ minWidth: "50rem" }}
             removableSort
@@ -263,65 +281,105 @@ export const PedidoWoo = (pedido) => {
             footer={footer}
           >
             <Column
+              className="mx-3"
+              body={(rowData) => {
+                return (
+                  <Button
+                    icon="pi pi-window-maximize"
+                    className="color-icon2"
+                    onClick={() => {
+                      setVisiblePedidos(true);
+                      setnomPedido(`${rowData.terceroExterno}`);
+                      setinfoPedido(rowData.productos);
+                    }}
+                  />
+                );
+              }}
+              style={{ maxWidth: "3rem" }}
+            />
+            <Column
               style={{ minWidth: "0.5rem" }}
               sortable
-              field="sku"
-              header="SKU"
+              field="id"
+              header="ID"
+            />
+            <Column sortable field="prefijo" header="Prefijo" />
+            <Column sortable field="fecha" header="Fecha" />
+            <Column
+              style={{ minWidth: "5rem" }}
+              sortable
+              field="terceroExterno"
+              header="Tercero"
             />
             <Column
               style={{ minWidth: "5rem" }}
               sortable
-              field="quantity"
-              header="Cantidad"
+              field="concepto"
+              header="Concepto"
             />
             <Column
               style={{ minWidth: "5rem" }}
               sortable
-              field="name"
-              header="Nombre"
-            />
-            <Column header="Image" body={imageBodyTemplate}></Column>
-
-            <Column
-              sortable
-              field="total"
-              header="Total"
+              field="totalPedido"
+              header="Total Pedido"
               body={(rowData) =>
                 new Intl.NumberFormat("es-CO", {
                   style: "currency",
                   currency: "COP",
-                  maximumFractionDigits: "0",
-                }).format(rowData.total)
+                  maximumFractionDigits: "2",
+                }).format(rowData.totalPedido)
               }
+            />{" "}
+            <Column
+              className="mx-3"
+              body={(rowData) => {
+                return (
+                  // Asegúrate de retornar algo aquí
+                  <i
+                    className="pi pi-print"
+                    onClick={() => {
+                      TicketVenta(rowData.id)
+                    }}
+                  />
+                );
+              }}
+              style={{ maxWidth: "3rem" }}
             />
-
-            {/*  <Column
-              sortable
-              field="status"
-              header="Estado"
-              body={statusBodyTemplate}
-            /> */}
           </DataTable>
         </div>
       ) : (
         <div className="card">
           <DataTable value={items} className="p-datatable-striped">
-            <Column field="sku" header="SKU" body={<Skeleton />}></Column>
             <Column
-              field="name"
-              header="Nombre Completo"
-              style={{ width: "25%" }}
+              style={{ minWidth: "0.5rem" }}
+              sortable
+              field="id"
+              header="ID"
               body={<Skeleton />}
-            ></Column>
+            />
 
             <Column
               sortable
-              field="quantity"
-              header="Cantidad"
+              field="prefijo"
+              header="Prefijo"
               body={<Skeleton />}
             />
-            <Column sortable field="name" header="Nombre" body={<Skeleton />} />
-            <Column sortable field="total" header="Total" body={<Skeleton />} />
+            <Column sortable field="fecha" header="Fecha" body={<Skeleton />} />
+
+            <Column
+              style={{ minWidth: "5rem" }}
+              sortable
+              field="terceroExterno"
+              header="Tercero"
+              body={<Skeleton />}
+            />
+            <Column
+              style={{ minWidth: "5rem" }}
+              sortable
+              field="concepto"
+              header="Concepto"
+              body={<Skeleton />}
+            />
           </DataTable>
         </div>
       )}

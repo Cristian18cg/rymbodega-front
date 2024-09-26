@@ -11,6 +11,7 @@ const WOProvider = ({ children }) => {
   const [tokenWo, settokenWo] = useState(process.env.REACT_APP_TOKEN_WO);
   const [listaProductosW_O, setlistaProductosW_O] = useState("");
   const [listaTerceros, setlistaTerceros] = useState("");
+  const [listaventasWO, setlistaventasWO] = useState("");
   const [loadingPedido, setloadingPedido] = useState(false);
   const [tokenWoo, settokenWoo] = useState(
     process.env.REACT_APP_WOOCOMERCE_TOKEN
@@ -106,23 +107,68 @@ const WOProvider = ({ children }) => {
   const ListarDocumentoVenta = async () => {
     try {
       const body = {
-        columnaOrdenar: "id",
+        columnaOrdenar: "fecha,id", // Cambiar a las columnas que necesitas ordenar
         pagina: 0,
-        registrosPorPagina: 1000,
+        registrosPorPagina: 19, // Cambiar la cantidad de registros por página
         orden: "DESC",
-        filtros: [],
-        canal: 2,
+        filtros: [
+          {
+            atributo: "documentoTipo.codigoDocumento",
+            valor: "FV",
+            valor2: null,
+            tipoFiltro: 0,
+            tipoDato: 0,
+            nombreColumna: null,
+            valores: null,
+            clase: null,
+            operador: 0,
+            subGrupo: "filtro",
+          },
+          {
+            atributo: "moneda.id",
+            valor: "31",
+            valor2: null,
+            tipoFiltro: 0,
+            tipoDato: 4,
+            nombreColumna: null,
+            valores: null,
+            clase: null,
+            operador: 0,
+            subGrupo: "filtro",
+          },
+        ],
+        canal: 0, // Cambiado el canal de 2 a 0 según el nuevo formato
         registroInicial: 0,
       };
-      const response = await axios.post("/terceros/listarTerceros", body, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `WO ${tokenWo}`,
-        },
-      });
+      const response = await axios.post(
+        "/documentos/listarDocumentoVenta",
+        body,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `WO ${tokenWo}`,
+          },
+        }
+      );
 
-      console.log("Respuesta:", response.data);
-      setlistaTerceros(response.data.data.content);
+      const fechaHoy = new Date().toISOString().split("T")[0];
+      console.log(fechaHoy);
+
+      // Filtrar los resultados para obtener solo los documentos de hoy
+      const documentosDeHoy = response.data.data.content.filter((documento) => {
+        return documento.fecha.startsWith(fechaHoy); // Asegurarse de que la fecha comience con la fecha de hoy
+      });
+      // Iterar sobre los documentos de hoy para consultar los productos de venta
+      for (const documento of documentosDeHoy) {
+        const {productos, totalPedido} = await ConsultarProductosVentas(documento.id);
+        // Añadir la lista de productos al documento actual
+        documento.productos = productos;
+        documento.totalPedido = totalPedido;
+      }
+
+      // Actualizar la lista con los documentos y productos
+      setlistaventasWO(documentosDeHoy);
+      console.log("Documentos de hoy:", documentosDeHoy);
     } catch (error) {
       FuncionErrorToken(error);
 
@@ -141,6 +187,58 @@ const WOProvider = ({ children }) => {
         console.error("Error desconocido:", error.message);
       }
 
+      console.error("Error al obtener las ventas:", error);
+    }
+  };
+  const ConsultarProductosVentas = async (id) => {
+    try {
+      const body = {
+        columnaOrdenar: "id",
+        pagina: 0,
+        registrosPorPagina: 1000,
+        orden: "DESC",
+        filtros: [],
+        canal: 2,
+        registroInicial: 0,
+      };
+  
+      const response = await axios.post(
+        "/documentos/getRenglonesByDocumentoEncabezado/" + id,
+        body,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `WO ${tokenWo}`,
+          },
+        }
+      );
+  
+      // Asignar productos obtenidos
+      const productos = response.data.data.content;
+  
+      // Calcular el total del pedido sumando el precioRenglon de cada producto
+      const totalPedido = productos.reduce((total, producto) => {
+        const precio = parseFloat(producto.precioRenglon) || 0; // Asegurar que el precio sea un número válido
+        return total + precio;
+      }, 0);
+  
+      // Retornar un objeto con los productos y el total del pedido
+      return {
+        productos,
+        totalPedido,
+      };
+    } catch (error) {
+      FuncionErrorToken(error);
+  
+      if (error.response) {
+        console.error("Error en la respuesta del servidor:", error.response.data);
+        console.error("Estado:", error.response.status);
+      } else if (error.request) {
+        console.error("Error en la solicitud:", error.request);
+      } else {
+        console.error("Error desconocido:", error.message);
+      }
+  
       console.error("Error al obtener los productos:", error);
     }
   };
@@ -185,6 +283,7 @@ const WOProvider = ({ children }) => {
       console.error("Error al obtener los productos:", error);
     }
   };
+
   const ConsultarProducto = async (codigo) => {
     try {
       const response = await axios.get(
@@ -483,13 +582,16 @@ const WOProvider = ({ children }) => {
 
     return terceroEncontrado.id;
   };
-  const CrearDocumentoVenta = async (pedido) => {
+  const CrearDocumentoVenta = async (pedido, CF) => {
     try {
       setloadingPedido(true);
-      ListarTerceros();
-
+      let tercero = null;
+      if (!CF) {
+        tercero = buscarTerceroPorNombreCompleto(pedido, listaTerceros);
+      } else {
+        tercero = CF;
+      }
       // Buscar el tercero (cliente)
-      const tercero = buscarTerceroPorNombreCompleto(pedido, listaTerceros);
       // Procesar los renglones de acuerdo al cliente
       const renglones = procesarPedido(
         pedido,
@@ -674,6 +776,10 @@ const WOProvider = ({ children }) => {
       setlistaTerceros,
       setloadingPedido,
       loadingPedido,
+      listaventasWO,
+      setlistaventasWO,
+      ListarDocumentoVenta,
+      TicketVenta,
     };
   }, [
     listaProductosW_O,
@@ -685,6 +791,10 @@ const WOProvider = ({ children }) => {
     setloadingPedido,
     loadingPedido,
     setlistaTerceros,
+    listaventasWO,
+    setlistaventasWO,
+    ListarDocumentoVenta,
+    TicketVenta,
   ]);
 
   return (

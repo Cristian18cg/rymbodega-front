@@ -16,9 +16,9 @@ import { MultiSelect } from "primereact/multiselect";
 import Swal from "sweetalert2";
 import { Skeleton } from "primereact/skeleton";
 
-export const PedidoWoo = (pedido) => {
+export const PedidoWO = (pedido) => {
   const { ListarVentas, ListaPedido, setListaPedido } = useControl_Woocomerce();
-  const { CrearDocumentoVenta,loadingPedido} = useControl_WO();
+  const { CrearDocumentoVenta, loadingPedido, listaventasWO } = useControl_WO();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
   useEffect(() => {
@@ -174,25 +174,7 @@ export const PedidoWoo = (pedido) => {
         icon="pi pi-refresh"
         outlined
         className="btn btn-outline-primary color-icon p-1"
-        onClick={ListarVentas}
-      />
-      <Button
-        type="button"
-        label="Crear pedido"
-        icon="pi pi-plus"
-        outlined
-        className="btn btn-outline-primary color-icon p-1"
-        onClick={() => CrearDocumentoVenta(pedido.pedido)}
-        loading={loadingPedido}
-      />
-         <Button
-        type="button"
-        label="Crear pedido CF"
-        icon="pi pi-user"
-        outlined
-        className="btn btn-outline-primary color-icon p-1"
-        onClick={() => CrearDocumentoVenta(pedido.pedido,108)}
-        loading={loadingPedido}
+        onClick={listaventasWO}
       />
     </div>
   );
@@ -202,45 +184,28 @@ export const PedidoWoo = (pedido) => {
       <Menubar start={start} end={end} className="p-header-datatable2  " />
     );
   };
-  const footer = `Valor total pedido: ${
-    pedido.pedido.total
-      ? new Intl.NumberFormat("es-CO", {
-          style: "currency",
-          currency: "COP",
-          maximumFractionDigits: "0",
-        }).format(pedido.pedido.total)
-      : ""
-  }   descuento total: -${
-    pedido.pedido.total
-      ? new Intl.NumberFormat("es-CO", {
-          style: "currency",
-          currency: "COP",
-          maximumFractionDigits: "0",
-        }).format(pedido.pedido.discount_total)
-      : ""
-  }`;
+  const footer = () => {
+    // Asumiendo que tienes acceso a un array global llamado 'productosTotales' con todos los productos
+    if (pedido.pedido && Array.isArray(pedido.pedido)) {
+      // Sumar el precioRenglon de todos los productos de la tabla
+      const totalFooter = pedido.pedido.reduce((total, producto) => {
+        const precio = parseFloat(producto.precioRenglon) || 0;
+        return total + precio;
+      }, 0);
 
-  const [statuses] = useState(["instock", "lowstock", "outofstock"]);
+      const totalFormatted = new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(totalFooter);
 
-  const StockEditor = (options) => {
-    console.log(options);
-    return (
-      <MultiSelect
-        value={getEstado(options.value)}
-        onChange={(e) => options.editorCallback(e.value)}
-        options={statuses}
-        placeholder="Seleccione estado"
-        itemTemplate={(option) => {
-          return (
-            <Tag
-              value={getEstado2(option)}
-              severity={getSeverity2(option)}
-            ></Tag>
-          );
-        }}
-      />
-    );
+      return <h5>Total pedido: {totalFormatted}</h5>;
+    } else {
+      return <strong>0.00</strong>;
+    }
   };
+
   const items = Array.from({ length: 15 }, (v, i) => i);
 
   return (
@@ -250,9 +215,16 @@ export const PedidoWoo = (pedido) => {
           <DataTable
             header={header}
             rows={10}
-            value={pedido.pedido.line_items}
+            value={pedido.pedido}
             filters={filters}
-            globalFilterFields={["id", "name", "total", "quantity"]}
+            globalFilterFields={[
+              "inventario.id",
+              "cantidad",
+              "inventario.descripcion",
+              "porcentajeDescuento",
+              "precio",
+              "precioRenglon",
+            ]}
             emptyMessage="No se encontraron productos"
             scrollable
             tableStyle={{ minWidth: "50rem" }}
@@ -265,36 +237,54 @@ export const PedidoWoo = (pedido) => {
             <Column
               style={{ minWidth: "0.5rem" }}
               sortable
-              field="sku"
-              header="SKU"
+              field="inventario.id"
+              header="ID"
             />
             <Column
               style={{ minWidth: "5rem" }}
               sortable
-              field="quantity"
+              field="cantidad"
               header="Cantidad"
             />
             <Column
               style={{ minWidth: "5rem" }}
               sortable
-              field="name"
+              field="inventario.descripcion"
               header="Nombre"
             />
-            <Column header="Image" body={imageBodyTemplate}></Column>
-
+            {/*   <Column header="Image" body={imageBodyTemplate}></Column> */}
             <Column
               sortable
-              field="total"
-              header="Total"
+              field="porcentajeDescuento"
+              header="Descuento"
+              body={(rowData) => {
+                return <span>{rowData.porcentajeDescuento}%</span>;
+              }}
+            />
+            <Column
+              sortable
+              field="precio"
+              header="Precio Unitario"
               body={(rowData) =>
                 new Intl.NumberFormat("es-CO", {
                   style: "currency",
                   currency: "COP",
-                  maximumFractionDigits: "0",
-                }).format(rowData.total)
+                  maximumFractionDigits: "2",
+                }).format(rowData.precio)
               }
             />
-
+            <Column
+              sortable
+              field="precioRenglon"
+              header="Precio Unitario"
+              body={(rowData) =>
+                new Intl.NumberFormat("es-CO", {
+                  style: "currency",
+                  currency: "COP",
+                  maximumFractionDigits: "2",
+                }).format(rowData.precioRenglon)
+              }
+            />
             {/*  <Column
               sortable
               field="status"
