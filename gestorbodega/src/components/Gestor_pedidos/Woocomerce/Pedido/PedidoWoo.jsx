@@ -18,7 +18,7 @@ import { Skeleton } from "primereact/skeleton";
 
 export const PedidoWoo = (pedido) => {
   const { ListarVentas, ListaPedido, setListaPedido } = useControl_Woocomerce();
-  const { CrearDocumentoVenta } = useControl_WO();
+  const { CrearDocumentoVenta,loadingPedido} = useControl_WO();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
   useEffect(() => {
@@ -183,6 +183,7 @@ export const PedidoWoo = (pedido) => {
         outlined
         className="btn btn-outline-primary color-icon p-1"
         onClick={() => CrearDocumentoVenta(pedido.pedido)}
+        loading={loadingPedido}
       />
     </div>
   );

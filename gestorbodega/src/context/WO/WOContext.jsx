@@ -1,16 +1,23 @@
 import { useState, createContext, useEffect, useMemo } from "react";
 import W_OAxios from "../../config/urlW_O";
 import Swal from "sweetalert2";
+import useControl_Woocomerce from "../../hooks/useControl_Woocomerce";
 import useControl from "../../hooks/useControl";
 import axios from "axios";
 const WOContextControl = createContext();
-
 const WOProvider = ({ children }) => {
   const { token, usuario } = useControl();
-  const [tokenWo, settokenWoo] = useState(process.env.REACT_APP_TOKEN_WO);
+  const { CambiarEstadoPedido } = useControl_Woocomerce();
+  const [tokenWo, settokenWo] = useState(process.env.REACT_APP_TOKEN_WO);
   const [listaProductosW_O, setlistaProductosW_O] = useState("");
   const [listaTerceros, setlistaTerceros] = useState("");
-
+  const [loadingPedido, setloadingPedido] = useState(false);
+  const [tokenWoo, settokenWoo] = useState(
+    process.env.REACT_APP_WOOCOMERCE_TOKEN
+  );
+  const [tokenWoo2, settokenWoo2] = useState(
+    process.env.REACT_APP_WOOCOMERCE_TOKEN2
+  );
   const showError = (error) => {
     const Toast = Swal.mixin({
       toast: true,
@@ -96,6 +103,47 @@ const WOProvider = ({ children }) => {
       console.error("Error al obtener los productos:", error);
     }
   };
+  const ListarDocumentoVenta = async () => {
+    try {
+      const body = {
+        columnaOrdenar: "id",
+        pagina: 0,
+        registrosPorPagina: 1000,
+        orden: "DESC",
+        filtros: [],
+        canal: 2,
+        registroInicial: 0,
+      };
+      const response = await axios.post("/terceros/listarTerceros", body, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `WO ${tokenWo}`,
+        },
+      });
+
+      console.log("Respuesta:", response.data);
+      setlistaTerceros(response.data.data.content);
+    } catch (error) {
+      FuncionErrorToken(error);
+
+      if (error.response) {
+        // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
+        console.error(
+          "Error en la respuesta del servidor:",
+          error.response.data
+        );
+        console.error("Estado:", error.response.status);
+      } else if (error.request) {
+        // La solicitud fue hecha pero no se recibió respuesta
+        console.error("Error en la solicitud:", error.request);
+      } else {
+        // Algo ocurrió al configurar la solicitud
+        console.error("Error desconocido:", error.message);
+      }
+
+      console.error("Error al obtener los productos:", error);
+    }
+  };
   const ListarTerceros = async () => {
     try {
       const body = {
@@ -148,8 +196,6 @@ const WOProvider = ({ children }) => {
           },
         }
       );
-      console.log("Respuestaaaaa:", response);
-      console.log("Respuesta:", response.data.data.content);
     } catch (error) {
       if (error.response) {
         // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
@@ -265,7 +311,7 @@ const WOProvider = ({ children }) => {
     return productoProcesado;
   };
 
-  const procesarPedido = (pedido, listaProductosW_O, idTercero) => {
+  const procesarPedido = (pedido, listaProductosW_O, totalPedido, tercero) => {
     const renglones = pedido.line_items.map((item) => {
       // Procesar el producto antes de hacer cualquier otra operación
       const productoProcesado = procesarProducto(item);
@@ -275,17 +321,19 @@ const WOProvider = ({ children }) => {
         (producto) => producto.codigo === productoProcesado.codigoReal
       );
 
+      // Si no se encuentra el producto en World Office, omitirlo
       if (!productoWO) {
-        console.log(productoProcesado);
-        showError(
+        console.log(
           `Producto no encontrado en World Office para el SKU: ${productoProcesado.sku}`
         );
+        return null; // Omite el producto si no lo encuentra
       }
 
       // Obtener la cantidad base del producto desde el nombre (ejemplo: "Aguila x30u" -> base de 30 unidades)
       const partes = item.name.split("x");
       const baseUnidadesNombre =
         partes.length > 1 ? parseInt(partes[1].replace("u", ""), 10) : 1;
+
       // Combinar la base de unidades del procesamiento del producto con la que se obtiene del nombre (si existe)
       const baseUnidades = baseUnidadesNombre
         ? baseUnidadesNombre
@@ -297,10 +345,9 @@ const WOProvider = ({ children }) => {
       );
       const porcentajeIVA = impuesto ? parseFloat(impuesto.valor) : 0;
 
-      // Calcular el precio total sin IVA o con IVA, según si el cliente fue encontrado
+      // Eliminar el IVA si el total del pedido es menor a 150,000
       let precioTotalSinIVA = item.price;
-      if (idTercero === 108) {
-        // Si el cliente no fue encontrado y es 108, quitamos el IVA
+      if (tercero === 108) {
         precioTotalSinIVA = porcentajeIVA
           ? item.price / (1 + porcentajeIVA)
           : item.price;
@@ -324,48 +371,112 @@ const WOProvider = ({ children }) => {
       };
     });
 
-    return renglones;
+    // Verificar si existe un producto con el SKU 19371 para agregar productos adicionales
+    const productoEspecial = pedido.line_items.find(
+      (item) => item.sku === "19371"
+    );
+
+    if (productoEspecial) {
+      // Agregar dos productos adicionales con 4 unidades cada uno
+      const productoWO1 = listaProductosW_O.find(
+        (producto) => producto.codigo === "1936"
+      );
+      const productoWO2 = listaProductosW_O.find(
+        (producto) => producto.codigo === "1937"
+      );
+
+      if (productoWO1 && productoWO2) {
+        // Calcular precios sin IVA para el producto 1936
+        const impuesto1 = productoWO1?.impuestos.find(
+          (impuesto) => impuesto.impuesto.tipo === "IVA"
+        );
+        let precioTotalSinIVA = productoEspecial.price;
+        const porcentajeIVA1 = impuesto1 ? parseFloat(impuesto1.valor) : 0;
+        const precioSinIVA1 =
+          tercero === 108
+            ? precioTotalSinIVA / (1 + porcentajeIVA1)
+            : precioTotalSinIVA;
+
+        // Calcular precios sin IVA para el producto 1937
+        const impuesto2 = productoWO2?.impuestos.find(
+          (impuesto) => impuesto.impuesto.tipo === "IVA"
+        );
+        const porcentajeIVA2 = impuesto2 ? parseFloat(impuesto2.valor) : 0;
+        const precioSinIVA2 =
+          tercero === 108
+            ? precioTotalSinIVA / (1 + porcentajeIVA2)
+            : precioTotalSinIVA;
+
+        renglones.push({
+          idInventario: productoWO1.id,
+          unidadMedida: productoWO1.unidadMedida.codigo,
+          cantidad: 4,
+          valorUnitario: (precioSinIVA1 / 8).toFixed(2), // Calcular el valor por unidad sin IVA
+          idBodega: 1,
+          porDescuento: 0,
+          concepto: "Producto adicional 1936",
+        });
+
+        renglones.push({
+          idInventario: productoWO2.id,
+          unidadMedida: productoWO2.unidadMedida.codigo,
+          cantidad: 4,
+          valorUnitario: (precioSinIVA2 / 8).toFixed(2), // Calcular el valor por unidad sin IVA
+          idBodega: 1,
+          porDescuento: 0,
+          concepto: "Producto adicional 1937",
+        });
+      }
+    }
+
+    return renglones.filter(Boolean); // Filtrar renglones nulos
   };
 
   const buscarTerceroPorNombreCompleto = (pedido, listaTerceros) => {
-    const nombreCompletoWooCommerce =
-      `${pedido.billing.first_name} ${pedido.billing.last_name}`.toUpperCase();
-
-    // Descomponer el nombre de WooCommerce en partes
-    const [nombreWooCommerce, ...apellidosWooCommerce] =
-      nombreCompletoWooCommerce.split(" ");
-
-    // Función para buscar coincidencia parcial
-    const compararNombres = (nombreWoo, nombreTercero) => {
-      return nombreTercero.toUpperCase().includes(nombreWoo.toUpperCase());
+    // Función para eliminar caracteres especiales y tildes
+    const normalizarTexto = (texto) => {
+      return texto
+        .normalize("NFD") // Descompone los caracteres con tilde en sus componentes
+        .replace(/[\u0300-\u036f]/g, "") // Elimina los símbolos diacríticos (tildes y otros)
+        .toUpperCase(); // Convierte el texto a mayúsculas
     };
 
-    // Intentar una coincidencia exacta de nombre completo
-    let terceroEncontrado = listaTerceros.find(
-      (tercero) =>
-        tercero.nombreCompleto.toUpperCase() === nombreCompletoWooCommerce
+    // Obtener y normalizar el nombre completo del pedido de WooCommerce
+    const nombreCompletoWooCommerce = normalizarTexto(
+      `${pedido.billing.first_name} ${pedido.billing.last_name}`
     );
 
-    // Si no se encuentra coincidencia exacta, probar con coincidencias parciales
-    if (!terceroEncontrado) {
-      terceroEncontrado = listaTerceros.find((tercero) => {
-        const nombreTercero = tercero.nombreCompleto.toUpperCase().split(" ");
+    // Dividir el nombre completo de WooCommerce en nombres y apellidos
+    const partesWooCommerce = nombreCompletoWooCommerce.split(" ");
+    const primerNombreWooCommerce = partesWooCommerce[0] || ""; // Primer nombre
 
-        // Coincidir solo el primer nombre y primer apellido, o si tienen más nombres, hacer pruebas adicionales
-        const primerNombreCoincide = compararNombres(
-          nombreWooCommerce,
-          nombreTercero[0]
-        );
-        const primerApellidoCoincide = compararNombres(
-          apellidosWooCommerce.join(" "),
-          nombreTercero.slice(1).join(" ")
-        );
+    // Función para comparar nombres con tolerancia
+    const compararNombresConTolerancia = (nombreTercero) => {
+      const partesTercero = nombreTercero.split(" ");
+      const primerNombreTercero = partesTercero[0] || ""; // Primer nombre del tercero
 
-        return primerNombreCoincide && primerApellidoCoincide;
-      });
-    }
+      // Verificar si el primer nombre coincide
+      const primerNombreCoincide =
+        primerNombreWooCommerce === primerNombreTercero;
 
-    // Si aún no se encuentra coincidencia, lanzar un error
+      // Verificar coincidencias parciales en los apellidos (sin tener en cuenta el orden exacto)
+      const apellidosWooCommerce = partesWooCommerce.slice(1); // Excluimos el primer nombre
+      const apellidosTercero = partesTercero.slice(1); // Excluimos el primer nombre
+
+      const apellidosCoinciden = apellidosWooCommerce.some((apellidoWoo) =>
+        apellidosTercero.includes(apellidoWoo)
+      );
+
+      // Consideramos coincidencia si el primer nombre coincide y al menos un apellido coincide
+      return primerNombreCoincide && apellidosCoinciden;
+    };
+
+    // Intentar encontrar coincidencia exacta de primer nombre y al menos un apellido
+    let terceroEncontrado = listaTerceros.find((tercero) =>
+      compararNombresConTolerancia(normalizarTexto(tercero.nombreCompleto))
+    );
+
+    // Si aún no se encuentra coincidencia, devolver un valor predeterminado
     if (!terceroEncontrado) {
       return 108;
     }
@@ -374,24 +485,23 @@ const WOProvider = ({ children }) => {
   };
   const CrearDocumentoVenta = async (pedido) => {
     try {
+      setloadingPedido(true);
       ListarTerceros();
-
-      console.log("pedido recibido", pedido);
-      console.log("productos", pedido.line_items);
 
       // Buscar el tercero (cliente)
       const tercero = buscarTerceroPorNombreCompleto(pedido, listaTerceros);
-      console.log(tercero);
-
       // Procesar los renglones de acuerdo al cliente
-      const renglones = procesarPedido(pedido, listaProductosW_O, tercero);
-      console.log(renglones);
+      const renglones = procesarPedido(
+        pedido,
+        listaProductosW_O,
+        pedido.total,
+        tercero
+      );
       const tokenWo = process.env.REACT_APP_TOKEN_WO; // Tu token de autenticación
-
       const data = {
         concepto: "FACTURA WOO",
         fecha: new Date().toISOString().split("T")[0], // Fecha actual
-        prefijo: 13 /* 13 */, // Ajustar el prefijo según corresponda
+        prefijo: 21, // Ajustar el prefijo según corresponda
         documentoTipo: "FV",
         idEmpresa: 2,
         idTerceroExterno: tercero === 108 ? 108 : tercero, // Asignar correctamente el tercero
@@ -415,13 +525,126 @@ const WOProvider = ({ children }) => {
           },
         }
       );
-      console.log(response);
+
+      setloadingPedido(false);
+      // Mostrar el mensaje de éxito
+
       showSuccess(response?.data?.developerMessage);
+
+      if (pedido.status === "processing") {
+        CambiarEstadoPedido("on-hold", pedido);
+      }
+
+      // Esperar 10 segundos antes de ejecutar Contabilizar
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      // Ejecutar Contabilizar después de la espera
+      Contabilizar(response.data.data.id);
       // Aquí puedes manejar la respuesta, por ejemplo, guardar el ID del documento
     } catch (error) {
-      console.log("error pedido", error);
+      if (error.response?.data?.developerMessage) {
+        showError(error.response?.data?.developerMessage);
+      } else {
+        showError("Hubo un error creando el pedido, vuelva a intentar");
+      }
+      console.log("error pedido", error?.request?.response);
       console.error("Error creando documento de venta:", error);
       // Aquí puedes manejar el error, como mostrar una notificación o mensaje al usuario
+    }
+  };
+  const Contabilizar = async (id) => {
+    try {
+      const body = {
+        columnaOrdenar: "id",
+        pagina: 0,
+        registrosPorPagina: 1000,
+        orden: "DESC",
+        filtros: [],
+        canal: 2,
+        registroInicial: 0,
+      };
+      const response = await axios.post(
+        `/documentos/contabilizarDocumento/` + id,
+        body,
+        {
+          headers: {
+            Authorization: `WO ${tokenWo}`,
+          },
+        }
+      );
+      showSuccess(response?.data?.developerMessage);
+      TicketVenta(id);
+    } catch (error) {
+      if (error.response) {
+        // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
+        console.error(
+          "Error en la respuesta del servidor:",
+          error.response.data
+        );
+        console.error("Estado:", error.response.status);
+      } else if (error.request) {
+        // La solicitud fue hecha pero no se recibió respuesta
+        console.error("Error en la solicitud:", error.request);
+      } else {
+        // Algo ocurrió al configurar la solicitud
+        console.error("Error desconocido:", error.message);
+      }
+      showError(`Error contabilizar el pedido: ${error.message}`);
+      console.error("Error al obtener el productos:", error);
+    }
+  };
+  const TicketVenta = async (id) => {
+    try {
+      const body = {
+        columnaOrdenar: "id",
+        pagina: 0,
+        registrosPorPagina: 1000,
+        orden: "DESC",
+        filtros: [],
+        canal: 2,
+        registroInicial: 0,
+      };
+      const response = await axios.get(`/documentos/ticketDocumento/` + id, {
+        headers: {
+          Authorization: `WO ${tokenWo}`,
+        },
+      });
+
+      // El string del PDF que llega desde el servidor
+      const pdfData = response.data;
+
+      // Convertir el string a un Blob (asumiendo que viene en formato base64 o binario)
+      const blob = new Blob([pdfData], { type: "application/pdf" });
+
+      // Crear una URL para el Blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Abrir una nueva pestaña con el PDF para que el usuario lo imprima o lo guarde
+      const newWindow = window.open(url);
+      if (newWindow) {
+        newWindow.focus();
+      } else {
+        console.error("Error al abrir la ventana del PDF");
+      }
+
+      // Mostrar el mensaje de éxito
+      showSuccess("Tiket en pdf generado correctamente.");
+    } catch (error) {
+      if (error.response) {
+        // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
+        console.error(
+          "Error en la respuesta del servidor:",
+          error.response.data
+        );
+        console.error("Estado:", error.response.status);
+      } else if (error.request) {
+        // La solicitud fue hecha pero no se recibió respuesta
+        console.error("Error en la solicitud:", error.request);
+      } else {
+        // Algo ocurrió al configurar la solicitud
+        console.error("Error desconocido:", error.message);
+      }
+      showError(`Error contabilizar el pedido: ${error.message}`);
+      console.error("Error al obtener el productos:", error);
     }
   };
   /* Funcion de error de token general */
@@ -449,6 +672,8 @@ const WOProvider = ({ children }) => {
       ListarTerceros,
       listaTerceros,
       setlistaTerceros,
+      setloadingPedido,
+      loadingPedido,
     };
   }, [
     listaProductosW_O,
@@ -457,6 +682,8 @@ const WOProvider = ({ children }) => {
     ListarProductosWO,
     ListarTerceros,
     listaTerceros,
+    setloadingPedido,
+    loadingPedido,
     setlistaTerceros,
   ]);
 

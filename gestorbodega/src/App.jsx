@@ -92,13 +92,13 @@ function App() {
   return (
     <PrimeReactProvider value={value}>
       <LoginProvider>
-        <WOProvider>
-          <PedidosPovider>
-            <WoocomercePovider>
+        <WoocomercePovider>
+          <WOProvider>
+            <PedidosPovider>
               <Login />
-            </WoocomercePovider>
-          </PedidosPovider>
-        </WOProvider>
+            </PedidosPovider>
+          </WOProvider>
+        </WoocomercePovider>
       </LoginProvider>
     </PrimeReactProvider>
   );

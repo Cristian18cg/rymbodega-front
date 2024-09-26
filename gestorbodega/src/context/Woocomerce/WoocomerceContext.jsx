@@ -171,8 +171,34 @@ const WoocomercePovider = ({ children }) => {
       // Maneja el error según sea necesario, como mostrar una notificación al usuario.
     }
   };
+  const CambiarEstadoPedido = async (estado, pedido) => {
 
- 
+    try {
+      console.log(pedido.id)
+      const ConsumerKey = tokenWoo;
+      const consumerSecret = tokenWoo2;
+      const updateData = {
+        status: estado, // Nuevo estado del pedido
+      };
+
+      const response = await wooAxios.put(
+        `wp-json/wc/v3/orders/${pedido.id}`,
+        updateData,
+        {
+          auth: {
+            username: ConsumerKey,
+            password: consumerSecret,
+          },
+        }
+      );
+      showSuccess("Estado de pedido actualizado con exito", response.data);
+    } catch (error) {
+      FuncionErrorToken(error);
+      console.error("Error al actualizar el producto:", error);
+      // Maneja el error según sea necesario, como mostrar una notificación al usuario.
+    }
+  };
+
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
     if (error?.response?.status === 401) {
@@ -189,7 +215,7 @@ const WoocomercePovider = ({ children }) => {
     return {
       listaProductos,
       ListaPedido,
-      
+      CambiarEstadoPedido,
       setListaPedido,
       setlistaProductos,
       ListarProductos,
@@ -199,7 +225,7 @@ const WoocomercePovider = ({ children }) => {
   }, [
     listaProductos,
     ListaPedido,
-    
+    CambiarEstadoPedido,
     setListaPedido,
     setlistaProductos,
     ListarProductos,

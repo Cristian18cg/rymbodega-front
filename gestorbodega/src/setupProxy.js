@@ -2,9 +2,9 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 module.exports = function(app) {
   app.use(
-    '/inventarios', // El path relativo que estás usando en tus solicitudes
+    '/api',  // Define el path donde quieres aplicar el proxy
     createProxyMiddleware({
-      target: 'https://api.worldoffice.cloud',
+      target: 'https://api.worldoffice.cloud/api/v1', // URL de tu API
       changeOrigin: true,
     })
   );
