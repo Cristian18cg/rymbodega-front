@@ -160,7 +160,9 @@ const WOProvider = ({ children }) => {
       });
       // Iterar sobre los documentos de hoy para consultar los productos de venta
       for (const documento of documentosDeHoy) {
-        const {productos, totalPedido} = await ConsultarProductosVentas(documento.id);
+        const { productos, totalPedido } = await ConsultarProductosVentas(
+          documento.id
+        );
         // Añadir la lista de productos al documento actual
         documento.productos = productos;
         documento.totalPedido = totalPedido;
@@ -201,7 +203,7 @@ const WOProvider = ({ children }) => {
         canal: 2,
         registroInicial: 0,
       };
-  
+
       const response = await axios.post(
         "/documentos/getRenglonesByDocumentoEncabezado/" + id,
         body,
@@ -212,16 +214,16 @@ const WOProvider = ({ children }) => {
           },
         }
       );
-  
+
       // Asignar productos obtenidos
       const productos = response.data.data.content;
-  
+
       // Calcular el total del pedido sumando el precioRenglon de cada producto
       const totalPedido = productos.reduce((total, producto) => {
         const precio = parseFloat(producto.precioRenglon) || 0; // Asegurar que el precio sea un número válido
         return total + precio;
       }, 0);
-  
+
       // Retornar un objeto con los productos y el total del pedido
       return {
         productos,
@@ -229,16 +231,19 @@ const WOProvider = ({ children }) => {
       };
     } catch (error) {
       FuncionErrorToken(error);
-  
+
       if (error.response) {
-        console.error("Error en la respuesta del servidor:", error.response.data);
+        console.error(
+          "Error en la respuesta del servidor:",
+          error.response.data
+        );
         console.error("Estado:", error.response.status);
       } else if (error.request) {
         console.error("Error en la solicitud:", error.request);
       } else {
         console.error("Error desconocido:", error.message);
       }
-  
+
       console.error("Error al obtener los productos:", error);
     }
   };
@@ -344,7 +349,6 @@ const WOProvider = ({ children }) => {
       case "81041": // Carton Rothman Blanco x10 Paquetes
         productoProcesado.codigoReal = producto.sku.slice(0, 4);
         break;
-        v;
       // Casos para cigarrillos medios (por 20 unidades)
       case "81091":
       case "81101":
@@ -414,12 +418,12 @@ const WOProvider = ({ children }) => {
     const renglones = pedido.line_items.map((item) => {
       // Procesar el producto antes de hacer cualquier otra operación
       const productoProcesado = procesarProducto(item);
-
+  
       // Buscar el producto en World Office usando el SKU real (códigoReal)
       const productoWO = listaProductosW_O.find(
         (producto) => producto.codigo === productoProcesado.codigoReal
       );
-
+  
       // Si no se encuentra el producto en World Office, omitirlo
       if (!productoWO) {
         console.log(
@@ -427,23 +431,28 @@ const WOProvider = ({ children }) => {
         );
         return null; // Omite el producto si no lo encuentra
       }
-
-      // Obtener la cantidad base del producto desde el nombre (ejemplo: "Aguila x30u" -> base de 30 unidades)
-      const partes = item.name.split("x");
-      const baseUnidadesNombre =
-        partes.length > 1 ? parseInt(partes[1].replace("u", ""), 10) : 1;
-
+  
+      // Normalizar el nombre del producto y eliminar espacios adicionales
+      const nombreNormalizado = item.name.replace(/\s+/g, " ").trim();
+  
+      // Usar una expresión regular para encontrar una 'x' válida seguida de un número y opcionalmente una 'u'
+      const regexMultiplicador = /\sx(\d+)(u)?\b/;
+      const match = nombreNormalizado.match(regexMultiplicador);
+  
+      // Si encontramos una coincidencia, usar el número después de la 'x', si no usar 1
+      const baseUnidadesNombre = match ? parseInt(match[1], 10) : 1;
+  
       // Combinar la base de unidades del procesamiento del producto con la que se obtiene del nombre (si existe)
       const baseUnidades = baseUnidadesNombre
         ? baseUnidadesNombre
         : productoProcesado.unidades;
-
+  
       // Obtener el IVA del producto
       const impuesto = productoWO?.impuestos.find(
         (impuesto) => impuesto.impuesto.tipo === "IVA"
       );
       const porcentajeIVA = impuesto ? parseFloat(impuesto.valor) : 0;
-
+  
       // Eliminar el IVA si el total del pedido es menor a 150,000
       let precioTotalSinIVA = item.price;
       if (tercero === 108) {
@@ -451,13 +460,13 @@ const WOProvider = ({ children }) => {
           ? item.price / (1 + porcentajeIVA)
           : item.price;
       }
-
+  
       // Calcular el valor unitario basado en la unidad base del producto
       const valorUnitarioSinIVA = precioTotalSinIVA / baseUnidades;
-
+  
       // Cantidad final del producto (ejemplo: si pidieron 2 canastas de 9, queda como 2 x 9)
       const cantidadFinal = item.quantity * baseUnidades;
-
+  
       // Construir el objeto del renglón
       return {
         idInventario: productoWO.id,
@@ -469,67 +478,10 @@ const WOProvider = ({ children }) => {
         concepto: item.name,
       };
     });
-
-    // Verificar si existe un producto con el SKU 19371 para agregar productos adicionales
-    const productoEspecial = pedido.line_items.find(
-      (item) => item.sku === "19371"
-    );
-
-    if (productoEspecial) {
-      // Agregar dos productos adicionales con 4 unidades cada uno
-      const productoWO1 = listaProductosW_O.find(
-        (producto) => producto.codigo === "1936"
-      );
-      const productoWO2 = listaProductosW_O.find(
-        (producto) => producto.codigo === "1937"
-      );
-
-      if (productoWO1 && productoWO2) {
-        // Calcular precios sin IVA para el producto 1936
-        const impuesto1 = productoWO1?.impuestos.find(
-          (impuesto) => impuesto.impuesto.tipo === "IVA"
-        );
-        let precioTotalSinIVA = productoEspecial.price;
-        const porcentajeIVA1 = impuesto1 ? parseFloat(impuesto1.valor) : 0;
-        const precioSinIVA1 =
-          tercero === 108
-            ? precioTotalSinIVA / (1 + porcentajeIVA1)
-            : precioTotalSinIVA;
-
-        // Calcular precios sin IVA para el producto 1937
-        const impuesto2 = productoWO2?.impuestos.find(
-          (impuesto) => impuesto.impuesto.tipo === "IVA"
-        );
-        const porcentajeIVA2 = impuesto2 ? parseFloat(impuesto2.valor) : 0;
-        const precioSinIVA2 =
-          tercero === 108
-            ? precioTotalSinIVA / (1 + porcentajeIVA2)
-            : precioTotalSinIVA;
-
-        renglones.push({
-          idInventario: productoWO1.id,
-          unidadMedida: productoWO1.unidadMedida.codigo,
-          cantidad: 4,
-          valorUnitario: (precioSinIVA1 / 8).toFixed(2), // Calcular el valor por unidad sin IVA
-          idBodega: 1,
-          porDescuento: 0,
-          concepto: "Producto adicional 1936",
-        });
-
-        renglones.push({
-          idInventario: productoWO2.id,
-          unidadMedida: productoWO2.unidadMedida.codigo,
-          cantidad: 4,
-          valorUnitario: (precioSinIVA2 / 8).toFixed(2), // Calcular el valor por unidad sin IVA
-          idBodega: 1,
-          porDescuento: 0,
-          concepto: "Producto adicional 1937",
-        });
-      }
-    }
-
-    return renglones.filter(Boolean); // Filtrar renglones nulos
+  
+    return renglones.filter(Boolean); // Filtra los valores nulos
   };
+  
 
   const buscarTerceroPorNombreCompleto = (pedido, listaTerceros) => {
     // Función para eliminar caracteres especiales y tildes
@@ -604,7 +556,7 @@ const WOProvider = ({ children }) => {
         concepto: "FACTURA WOO",
         fecha: new Date().toISOString().split("T")[0], // Fecha actual
         prefijo: 21, // Ajustar el prefijo según corresponda
-        documentoTipo: "FV",
+        documentoTipo: "PD",
         idEmpresa: 2,
         idTerceroExterno: tercero === 108 ? 108 : tercero, // Asignar correctamente el tercero
         idTerceroInterno: 1,
@@ -640,7 +592,7 @@ const WOProvider = ({ children }) => {
       // Esperar 10 segundos antes de ejecutar Contabilizar
       await new Promise((resolve) => setTimeout(resolve, 10000));
       // Ejecutar Contabilizar después de la espera
-      Contabilizar(response.data.data.id);
+      /*  Contabilizar(response.data.data.id); */
       // Aquí puedes manejar la respuesta, por ejemplo, guardar el ID del documento
     } catch (error) {
       if (error.response?.data?.developerMessage) {
@@ -694,7 +646,7 @@ const WOProvider = ({ children }) => {
       console.error("Error al obtener el productos:", error);
     }
   };
-/*   const TicketVenta = async (id) => {
+  /*   const TicketVenta = async (id) => {
     try {
       const body = {
         columnaOrdenar: "id",
@@ -757,32 +709,35 @@ const WOProvider = ({ children }) => {
         },
         responseType: "arraybuffer", // Asegurarse de que el PDF se maneje como binario
       });
-  
+
       // Crear un Blob para el PDF
       const blob = new Blob([response.data], { type: "application/pdf" });
-  
+
       // Crear una URL para el Blob
       const url = window.URL.createObjectURL(blob);
-  
+
       // Crear un iframe dinámicamente
       const iframe = document.createElement("iframe");
       iframe.style.display = "none"; // Esconder el iframe
       iframe.src = url;
-  
+
       // Añadir el iframe al body del documento
       document.body.appendChild(iframe);
-  
+
       // Esperar a que el iframe cargue el PDF y luego llamar a imprimir
       iframe.onload = () => {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
       };
-  
+
       // Mostrar mensaje de éxito
       showSuccess("Ticket en PDF generado correctamente.");
     } catch (error) {
       if (error.response) {
-        console.error("Error en la respuesta del servidor:", error.response.data);
+        console.error(
+          "Error en la respuesta del servidor:",
+          error.response.data
+        );
         console.error("Estado:", error.response.status);
       } else if (error.request) {
         console.error("Error en la solicitud:", error.request);
@@ -793,7 +748,7 @@ const WOProvider = ({ children }) => {
       console.error("Error al obtener el productos:", error);
     }
   };
-  
+
   /* Funcion de error de token general */
   const FuncionErrorToken = (error) => {
     if (error?.response?.status === 401) {
