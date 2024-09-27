@@ -61,7 +61,6 @@ export const PedidosRuta = ({ data, documento }) => {
 
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e;
-    console.log(newValue);
     if (rowData[field] === newValue) {
       event.preventDefault(); // No hacer nada si el valor no cambia
       return;

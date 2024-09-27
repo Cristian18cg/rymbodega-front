@@ -1,4 +1,4 @@
-import { useState, createContext, useEffect, useMemo } from "react";
+import { useState, createContext, useMemo,useCallback } from "react";
 import wooAxios from "../../config/urlWoo";
 import Swal from "sweetalert2";
 import useControl from "../../hooks/useControl";
@@ -7,15 +7,10 @@ import axios from "axios";
 const WoocomerceContextControl = createContext();
 
 const WoocomercePovider = ({ children }) => {
-  const { token, usuario } = useControl();
   const [listaProductos, setlistaProductos] = useState("");
   const [ListaPedido, setListaPedido] = useState("");
-  const [tokenWoo, settokenWoo] = useState(
-    process.env.REACT_APP_WOOCOMERCE_TOKEN
-  );
-  const [tokenWoo2, settokenWoo2] = useState(
-    process.env.REACT_APP_WOOCOMERCE_TOKEN2
-  );
+  const tokenWoo = process.env.REACT_APP_WOOCOMERCE_TOKEN;
+  const tokenWoo2 = process.env.REACT_APP_WOOCOMERCE_TOKEN2;
 
   const showError = (error) => {
     const Toast = Swal.mixin({
@@ -57,8 +52,18 @@ const WoocomercePovider = ({ children }) => {
       buttonsStyling: false,
     });
   };
+    /* Funcion de error de token general */
+const FuncionErrorToken = useCallback( (error) => {
+      if (error?.response?.status === 401) {
+        showError("Tu token se vencio.");
+      } else if (error.response.data.message) {
+        showError(error?.response?.data?.message);
+      } else {
+        showError("Ha ocurrido un error!");
+      }
+    },[]);
   /* Funcion para listar las rutas por entregador del dia */
-  const ListarProductos = async () => {
+  const ListarProductos = useCallback( async () => {
     try {
       const ConsumerKey = tokenWoo;
       const consumerSecret = tokenWoo2;
@@ -77,7 +82,6 @@ const WoocomercePovider = ({ children }) => {
       });
 
       // Obtener el número total de productos desde los encabezados de respuesta
-      const totalProducts = parseInt(initialResponse.headers["x-wp-total"], 10);
       const totalPages = parseInt(
         initialResponse.headers["x-wp-totalpages"],
         10
@@ -108,15 +112,14 @@ const WoocomercePovider = ({ children }) => {
         return accumulator.concat(response.data);
       }, []);
 
-      console.log(`Total de productos obtenidos: ${allProducts.length}`);
       setlistaProductos(allProducts);
     } catch (error) {
       FuncionErrorToken(error);
       console.error("Error al obtener los productos:", error);
       // Manejo adicional de errores si es necesario
     }
-  };
-  const ModificarProducto = async (idProducto, campo, valor) => {
+  },[FuncionErrorToken,tokenWoo,tokenWoo2]);
+  const ModificarProducto =useCallback( async (idProducto, campo, valor) => {
     try {
       const valorComoCadena = valor.toString();
       const ConsumerKey = tokenWoo;
@@ -143,8 +146,8 @@ const WoocomercePovider = ({ children }) => {
       console.error("Error al actualizar el producto:", error);
       // Maneja el error según sea necesario, como mostrar una notificación al usuario.
     }
-  };
-  const ListarVentas = async () => {
+  },[FuncionErrorToken,tokenWoo,tokenWoo2]);
+  const ListarVentas = useCallback(async () => {
     try {
       const ConsumerKey = tokenWoo;
       const consumerSecret = tokenWoo2;
@@ -163,18 +166,15 @@ const WoocomercePovider = ({ children }) => {
           },
         }
       );
-      console.log(response.data);
       setListaPedido(response.data);
     } catch (error) {
       FuncionErrorToken(error);
       console.error("Error obteniendo pedidos:", error);
       // Maneja el error según sea necesario, como mostrar una notificación al usuario.
     }
-  };
-  const CambiarEstadoPedido = async (estado, pedido) => {
-
+  },[FuncionErrorToken,tokenWoo,tokenWoo2]);
+  const CambiarEstadoPedido = useCallback(async (estado, pedido) => {
     try {
-      console.log(pedido.id)
       const ConsumerKey = tokenWoo;
       const consumerSecret = tokenWoo2;
       const updateData = {
@@ -197,19 +197,8 @@ const WoocomercePovider = ({ children }) => {
       console.error("Error al actualizar el producto:", error);
       // Maneja el error según sea necesario, como mostrar una notificación al usuario.
     }
-  };
+  },[FuncionErrorToken,tokenWoo,tokenWoo2]);
 
-  /* Funcion de error de token general */
-  const FuncionErrorToken = (error) => {
-    if (error?.response?.status === 401) {
-      window.location.reload();
-      showError("Tu token se vencio, por favor vuelve a iniciar sesión.");
-    } else if (error.response.data.message) {
-      showError(error?.response?.data?.message);
-    } else {
-      showError("Ha ocurrido un error!");
-    }
-  };
 
   const contextValue = useMemo(() => {
     return {
@@ -223,6 +212,7 @@ const WoocomercePovider = ({ children }) => {
       ListarVentas,
     };
   }, [
+    ModificarProducto,
     listaProductos,
     ListaPedido,
     CambiarEstadoPedido,

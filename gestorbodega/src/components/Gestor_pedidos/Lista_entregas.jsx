@@ -48,7 +48,6 @@ export const Lista_entregas = () => {
 
   useEffect(() => {
     // Llama a la función asincrónica para obtener los datos
-    console.log(ListadoEntregadores);
   }, [ListadoEntregadores]);
   /* limpia filtros */
   const clearFilter = () => {

@@ -22,7 +22,6 @@ export const PedidoWO = (pedido) => {
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
   useEffect(() => {
-    console.log("repedido", pedido.pedido);
   }, [pedido]);
   const showError = (error) => {
     const Toast = Swal.mixin({

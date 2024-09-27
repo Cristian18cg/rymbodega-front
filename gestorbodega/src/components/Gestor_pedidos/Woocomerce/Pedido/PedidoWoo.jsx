@@ -22,7 +22,6 @@ export const PedidoWoo = (pedido) => {
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
   useEffect(() => {
-    console.log("repedido", pedido.pedido);
   }, [pedido]);
   const showError = (error) => {
     const Toast = Swal.mixin({
@@ -223,7 +222,6 @@ export const PedidoWoo = (pedido) => {
   const [statuses] = useState(["instock", "lowstock", "outofstock"]);
 
   const StockEditor = (options) => {
-    console.log(options);
     return (
       <MultiSelect
         value={getEstado(options.value)}

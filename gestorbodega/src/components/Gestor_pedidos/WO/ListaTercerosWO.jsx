@@ -198,7 +198,6 @@ export const ListaTercerosWO = () => {
   const [statuses] = useState(["instock", "lowstock", "outofstock"]);
 
   const StockEditor = (options) => {
-    console.log(options);
     return (
       <MultiSelect
         value={getEstado(options.value)}

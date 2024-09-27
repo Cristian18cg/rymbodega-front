@@ -36,7 +36,6 @@ export const Crear_pedido = ({
   ]);
   useEffect(() => {
     if (!numruta) {
-      console.log(ultimaRuta)
       const ruta = parseInt(ultimaRuta, 0) + 1;
       setNumeroRuta(ruta);
       setBase(ultimaBase, 0);
@@ -152,7 +151,6 @@ export const Crear_pedido = ({
     }
     pedidos.forEach((pedido, index) => {
       if (!pedido.valorPedido.trim()) {
-        console.log("errores" + index);
         erroresTemp2[index] = "El valor del pedido es requerido";
       }
     });
@@ -278,7 +276,6 @@ export const Crear_pedido = ({
   const handleFocus2 = () => {
     // Remueve el formato de moneda y muestra solo los números
     const numericValue = base?.toString().replace(/[^\d]/g, "");
-    console.log(numericValue);
     setBase(numericValue);
     setFormattedBase(numericValue); // Muestra el valor numérico sin formatear cuando el campo está enfocado
   };

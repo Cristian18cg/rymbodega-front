@@ -31,7 +31,6 @@ export const Historico_Entregas = () => {
     delayedRequest();
   }, []);
   useEffect(() => {
-    console.log(filtroFecha);
     // Llama a la función asincrónica para obtener los datos
     if (filtroFecha?.some((filtro) => filtro.name === "Rango")) {
       setcalendar(true);
@@ -152,9 +151,7 @@ export const Historico_Entregas = () => {
   };
 
   const funcionFiltrar = () => {
-    console.log(filtroFecha[0].name);
     if (filtroFecha?.some((filtro) => filtro.name === "Rango")) {
-      console.log(dates[0]);
       historico_entregas(dates[0].toISOString().split("T")[0] , dates[1].toISOString().split("T")[0] );
     } else {
       const fecha = obtenerRangoFechas(filtroFecha[0].name);

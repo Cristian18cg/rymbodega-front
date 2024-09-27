@@ -1,24 +1,16 @@
-import { useState, createContext, useEffect, useMemo } from "react";
-import W_OAxios from "../../config/urlW_O";
+import { useState, createContext, useCallback, useMemo } from "react";
 import Swal from "sweetalert2";
 import useControl_Woocomerce from "../../hooks/useControl_Woocomerce";
-import useControl from "../../hooks/useControl";
 import axios from "axios";
 const WOContextControl = createContext();
 const WOProvider = ({ children }) => {
-  const { token, usuario } = useControl();
-  const { CambiarEstadoPedido } = useControl_Woocomerce();
-  const [tokenWo, settokenWo] = useState(process.env.REACT_APP_TOKEN_WO);
+  const { CambiarEstadoPedido,ListarVentas } = useControl_Woocomerce();
+  const tokenWo = (process.env.REACT_APP_TOKEN_WO);
   const [listaProductosW_O, setlistaProductosW_O] = useState("");
   const [listaTerceros, setlistaTerceros] = useState("");
   const [listaventasWO, setlistaventasWO] = useState("");
   const [loadingPedido, setloadingPedido] = useState(false);
-  const [tokenWoo, settokenWoo] = useState(
-    process.env.REACT_APP_WOOCOMERCE_TOKEN
-  );
-  const [tokenWoo2, settokenWoo2] = useState(
-    process.env.REACT_APP_WOOCOMERCE_TOKEN2
-  );
+
   const showError = (error) => {
     const Toast = Swal.mixin({
       toast: true,
@@ -60,7 +52,23 @@ const WOProvider = ({ children }) => {
     });
   };
 
-  const ListarProductosWO = async () => {
+  /* Funcion de error de token general */
+  const FuncionErrorToken = useCallback((error) => {
+    if (error?.response?.status === 401) {
+      window.location.reload();
+      showError("Tu token se vencio, por favor vuelve a iniciar sesión.");
+    } else if (
+      error.response &&
+      error.response.data &&
+      error.response.data.error
+    ) {
+      showError(error?.response?.data.error);
+    } else {
+      showError("Ha ocurrido un error!");
+    }
+  }, []);
+
+  const ListarProductosWO = useCallback(async () => {
     try {
       const body = {
         columnaOrdenar: "id",
@@ -103,8 +111,68 @@ const WOProvider = ({ children }) => {
 
       console.error("Error al obtener los productos:", error);
     }
-  };
-  const ListarDocumentoVenta = async () => {
+  }, [FuncionErrorToken, tokenWo]);
+
+  const ConsultarProductosVentas = useCallback(
+    async (id) => {
+      try {
+        const body = {
+          columnaOrdenar: "id",
+          pagina: 0,
+          registrosPorPagina: 1000,
+          orden: "DESC",
+          filtros: [],
+          canal: 2,
+          registroInicial: 0,
+        };
+
+        const response = await axios.post(
+          "/documentos/getRenglonesByDocumentoEncabezado/" + id,
+          body,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `WO ${tokenWo}`,
+            },
+          }
+        );
+
+        // Asignar productos obtenidos
+        const productos = response.data.data.content;
+
+        // Calcular el total del pedido sumando el precioRenglon de cada producto
+        const totalPedido = productos.reduce((total, producto) => {
+          const precio = parseFloat(producto.precioRenglon) || 0; // Asegurar que el precio sea un número válido
+          return total + precio;
+        }, 0);
+
+        // Retornar un objeto con los productos y el total del pedido
+        return {
+          productos,
+          totalPedido,
+        };
+      } catch (error) {
+        FuncionErrorToken(error);
+
+        if (error.response) {
+          console.error(
+            "Error en la respuesta del servidor:",
+            error.response.data
+          );
+          console.error("Estado:", error.response.status);
+        } else if (error.request) {
+          console.error("Error en la solicitud:", error.request);
+        } else {
+          console.error("Error desconocido:", error.message);
+        }
+
+        console.error("Error al obtener los productos:", error);
+      }
+    },
+    [FuncionErrorToken, tokenWo]
+  );
+
+  const ListarDocumentoVenta = useCallback(async () => {
     try {
       const body = {
         columnaOrdenar: "fecha,id", // Cambiar a las columnas que necesitas ordenar
@@ -152,7 +220,6 @@ const WOProvider = ({ children }) => {
       );
 
       const fechaHoy = new Date().toISOString().split("T")[0];
-      console.log(fechaHoy);
 
       // Filtrar los resultados para obtener solo los documentos de hoy
       const documentosDeHoy = response.data.data.content.filter((documento) => {
@@ -170,7 +237,6 @@ const WOProvider = ({ children }) => {
 
       // Actualizar la lista con los documentos y productos
       setlistaventasWO(documentosDeHoy);
-      console.log("Documentos de hoy:", documentosDeHoy);
     } catch (error) {
       FuncionErrorToken(error);
 
@@ -191,63 +257,10 @@ const WOProvider = ({ children }) => {
 
       console.error("Error al obtener las ventas:", error);
     }
-  };
-  const ConsultarProductosVentas = async (id) => {
-    try {
-      const body = {
-        columnaOrdenar: "id",
-        pagina: 0,
-        registrosPorPagina: 1000,
-        orden: "DESC",
-        filtros: [],
-        canal: 2,
-        registroInicial: 0,
-      };
+  }, [ConsultarProductosVentas, FuncionErrorToken, tokenWo]);
 
-      const response = await axios.post(
-        "/documentos/getRenglonesByDocumentoEncabezado/" + id,
-        body,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `WO ${tokenWo}`,
-          },
-        }
-      );
-
-      // Asignar productos obtenidos
-      const productos = response.data.data.content;
-
-      // Calcular el total del pedido sumando el precioRenglon de cada producto
-      const totalPedido = productos.reduce((total, producto) => {
-        const precio = parseFloat(producto.precioRenglon) || 0; // Asegurar que el precio sea un número válido
-        return total + precio;
-      }, 0);
-
-      // Retornar un objeto con los productos y el total del pedido
-      return {
-        productos,
-        totalPedido,
-      };
-    } catch (error) {
-      FuncionErrorToken(error);
-
-      if (error.response) {
-        console.error(
-          "Error en la respuesta del servidor:",
-          error.response.data
-        );
-        console.error("Estado:", error.response.status);
-      } else if (error.request) {
-        console.error("Error en la solicitud:", error.request);
-      } else {
-        console.error("Error desconocido:", error.message);
-      }
-
-      console.error("Error al obtener los productos:", error);
-    }
-  };
-  const ListarTerceros = async () => {
+  /* Listar terceros en World Office */
+  const ListarTerceros = useCallback(async () => {
     try {
       const body = {
         columnaOrdenar: "id",
@@ -265,7 +278,6 @@ const WOProvider = ({ children }) => {
         },
       });
 
-      console.log("Respuesta:", response.data);
       setlistaTerceros(response.data.data.content);
     } catch (error) {
       FuncionErrorToken(error);
@@ -287,8 +299,8 @@ const WOProvider = ({ children }) => {
 
       console.error("Error al obtener los productos:", error);
     }
-  };
-
+  }, [FuncionErrorToken, tokenWo]);
+  /* 
   const ConsultarProducto = async (codigo) => {
     try {
       const response = await axios.get(
@@ -318,7 +330,8 @@ const WOProvider = ({ children }) => {
       showError(`Error al obtener el producto: ${error.message}`);
       console.error("Error al obtener el productos:", error);
     }
-  };
+  }; */
+  /* Procesar Producto a casos especiales */
   const procesarProducto = (producto) => {
     let productoProcesado = { ...producto };
 
@@ -413,76 +426,78 @@ const WOProvider = ({ children }) => {
 
     return productoProcesado;
   };
+  /* Se crean los renglones necesarios con precios y unidades */
+  const procesarPedido = useCallback(
+    (pedido, listaProductosW_O, totalPedido, tercero) => {
+      const renglones = pedido.line_items.map((item) => {
+        // Procesar el producto antes de hacer cualquier otra operación
+        const productoProcesado = procesarProducto(item);
 
-  const procesarPedido = (pedido, listaProductosW_O, totalPedido, tercero) => {
-    const renglones = pedido.line_items.map((item) => {
-      // Procesar el producto antes de hacer cualquier otra operación
-      const productoProcesado = procesarProducto(item);
-  
-      // Buscar el producto en World Office usando el SKU real (códigoReal)
-      const productoWO = listaProductosW_O.find(
-        (producto) => producto.codigo === productoProcesado.codigoReal
-      );
-  
-      // Si no se encuentra el producto en World Office, omitirlo
-      if (!productoWO) {
-        console.log(
-          `Producto no encontrado en World Office para el SKU: ${productoProcesado.sku}`
+        // Buscar el producto en World Office usando el SKU real (códigoReal)
+        const productoWO = listaProductosW_O.find(
+          (producto) => producto.codigo === productoProcesado.codigoReal
         );
-        return null; // Omite el producto si no lo encuentra
-      }
-  
-      // Normalizar el nombre del producto y eliminar espacios adicionales
-      const nombreNormalizado = item.name.replace(/\s+/g, " ").trim();
-  
-      // Usar una expresión regular para encontrar una 'x' válida seguida de un número y opcionalmente una 'u'
-      const regexMultiplicador = /\sx(\d+)(u)?\b/;
-      const match = nombreNormalizado.match(regexMultiplicador);
-  
-      // Si encontramos una coincidencia, usar el número después de la 'x', si no usar 1
-      const baseUnidadesNombre = match ? parseInt(match[1], 10) : 1;
-  
-      // Combinar la base de unidades del procesamiento del producto con la que se obtiene del nombre (si existe)
-      const baseUnidades = baseUnidadesNombre
-        ? baseUnidadesNombre
-        : productoProcesado.unidades;
-  
-      // Obtener el IVA del producto
-      const impuesto = productoWO?.impuestos.find(
-        (impuesto) => impuesto.impuesto.tipo === "IVA"
-      );
-      const porcentajeIVA = impuesto ? parseFloat(impuesto.valor) : 0;
-  
-      // Eliminar el IVA si el total del pedido es menor a 150,000
-      let precioTotalSinIVA = item.price;
-      if (tercero === 108) {
-        precioTotalSinIVA = porcentajeIVA
-          ? item.price / (1 + porcentajeIVA)
-          : item.price;
-      }
-  
-      // Calcular el valor unitario basado en la unidad base del producto
-      const valorUnitarioSinIVA = precioTotalSinIVA / baseUnidades;
-  
-      // Cantidad final del producto (ejemplo: si pidieron 2 canastas de 9, queda como 2 x 9)
-      const cantidadFinal = item.quantity * baseUnidades;
-  
-      // Construir el objeto del renglón
-      return {
-        idInventario: productoWO.id,
-        unidadMedida: productoWO.unidadMedida.codigo,
-        cantidad: cantidadFinal,
-        valorUnitario: valorUnitarioSinIVA.toFixed(2), // Valor sin IVA y por unidad base
-        idBodega: 1, // Supongamos que siempre es 1, puedes ajustarlo
-        porDescuento: 0, // Asumiendo que no hay descuento
-        concepto: item.name,
-      };
-    });
-  
-    return renglones.filter(Boolean); // Filtra los valores nulos
-  };
-  
 
+        // Si no se encuentra el producto en World Office, omitirlo
+        if (!productoWO) {
+          showError(
+            `Producto no encontrado en World Office para el SKU: ${productoProcesado.sku}`
+          );
+          return null; // Omite el producto si no lo encuentra
+        }
+
+        // Normalizar el nombre del producto y eliminar espacios adicionales
+        const nombreNormalizado = item.name.replace(/\s+/g, " ").trim();
+
+        // Usar una expresión regular para encontrar una 'x' válida seguida de un número y opcionalmente una 'u'
+        const regexMultiplicador = /\sx(\d+)(u)?\b/;
+        const match = nombreNormalizado.match(regexMultiplicador);
+
+        // Si encontramos una coincidencia, usar el número después de la 'x', si no usar 1
+        const baseUnidadesNombre = match ? parseInt(match[1], 10) : 1;
+
+        // Combinar la base de unidades del procesamiento del producto con la que se obtiene del nombre (si existe)
+        const baseUnidades = baseUnidadesNombre
+          ? baseUnidadesNombre
+          : productoProcesado.unidades;
+
+        // Obtener el IVA del producto
+        const impuesto = productoWO?.impuestos.find(
+          (impuesto) => impuesto.impuesto.tipo === "IVA"
+        );
+        const porcentajeIVA = impuesto ? parseFloat(impuesto.valor) : 0;
+
+        // Eliminar el IVA si el total del pedido es menor a 150,000
+        let precioTotalSinIVA = item.price;
+        if (tercero === 108) {
+          precioTotalSinIVA = porcentajeIVA
+            ? item.price / (1 + porcentajeIVA)
+            : item.price;
+        }
+
+        // Calcular el valor unitario basado en la unidad base del producto
+        const valorUnitarioSinIVA = precioTotalSinIVA / baseUnidades;
+
+        // Cantidad final del producto (ejemplo: si pidieron 2 canastas de 9, queda como 2 x 9)
+        const cantidadFinal = item.quantity * baseUnidades;
+
+        // Construir el objeto del renglón
+        return {
+          idInventario: productoWO.id,
+          unidadMedida: productoWO.unidadMedida.codigo,
+          cantidad: cantidadFinal,
+          valorUnitario: valorUnitarioSinIVA.toFixed(2), // Valor sin IVA y por unidad base
+          idBodega: 1, // Supongamos que siempre es 1, puedes ajustarlo
+          porDescuento: 0, // Asumiendo que no hay descuento
+          concepto: item.name,
+        };
+      });
+
+      return renglones.filter(Boolean); // Filtra los valores nulos
+    },
+    []
+  );
+  /* Buscar tercero */
   const buscarTerceroPorNombreCompleto = (pedido, listaTerceros) => {
     // Función para eliminar caracteres especiales y tildes
     const normalizarTexto = (texto) => {
@@ -534,264 +549,207 @@ const WOProvider = ({ children }) => {
 
     return terceroEncontrado.id;
   };
-  const CrearDocumentoVenta = async (pedido, CF) => {
-    try {
-      setloadingPedido(true);
-      let tercero = null;
-      if (!CF) {
-        tercero = buscarTerceroPorNombreCompleto(pedido, listaTerceros);
-      } else {
-        tercero = CF;
-      }
-      // Buscar el tercero (cliente)
-      // Procesar los renglones de acuerdo al cliente
-      const renglones = procesarPedido(
-        pedido,
-        listaProductosW_O,
-        pedido.total,
-        tercero
-      );
-      const tokenWo = process.env.REACT_APP_TOKEN_WO; // Tu token de autenticación
-      const data = {
-        concepto: "FACTURA WOO",
-        fecha: new Date().toISOString().split("T")[0], // Fecha actual
-        prefijo: 21, // Ajustar el prefijo según corresponda
-        documentoTipo: "PD",
-        idEmpresa: 2,
-        idTerceroExterno: tercero === 108 ? 108 : tercero, // Asignar correctamente el tercero
-        idTerceroInterno: 1,
-        idFormaPago: 4,
-        idMoneda: 31,
-        porcentajeDescuento: false,
-        porcentajeTodosRenglones: false,
-        valDescuento: 0, // Asumimos un descuento global, si lo hay
-        reglones: renglones, // Renglones generados
-        idDetalles: renglones.map((renglon) => renglon.idInventario), // Agregar los IDs de inventario como detalles
-      };
-
-      const response = await axios.post(
-        "/documentos/crearDocumentoVenta",
-        data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `WO ${tokenWo}`,
-          },
-        }
-      );
-
-      setloadingPedido(false);
-      // Mostrar el mensaje de éxito
-
-      showSuccess(response?.data?.developerMessage);
-
-      if (pedido.status === "processing") {
-        CambiarEstadoPedido("on-hold", pedido);
-      }
-
-      // Esperar 10 segundos antes de ejecutar Contabilizar
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-      // Ejecutar Contabilizar después de la espera
-      /*  Contabilizar(response.data.data.id); */
-      // Aquí puedes manejar la respuesta, por ejemplo, guardar el ID del documento
-    } catch (error) {
-      if (error.response?.data?.developerMessage) {
-        showError(error.response?.data?.developerMessage);
-      } else {
-        showError("Hubo un error creando el pedido, vuelva a intentar");
-      }
-      console.log("error pedido", error?.request?.response);
-      console.error("Error creando documento de venta:", error);
-      // Aquí puedes manejar el error, como mostrar una notificación o mensaje al usuario
-    }
-  };
-  const Contabilizar = async (id) => {
-    try {
-      const body = {
-        columnaOrdenar: "id",
-        pagina: 0,
-        registrosPorPagina: 1000,
-        orden: "DESC",
-        filtros: [],
-        canal: 2,
-        registroInicial: 0,
-      };
-      const response = await axios.post(
-        `/documentos/contabilizarDocumento/` + id,
-        body,
-        {
+  /* Tiket de venta */
+  const TicketVenta = useCallback(
+    async (id) => {
+      try {
+        const response = await axios.get(`/documentos/ticketDocumento/` + id, {
           headers: {
             Authorization: `WO ${tokenWo}`,
           },
+          responseType: "arraybuffer", // Asegurarse de que el PDF se maneje como binario
+        });
+
+        // Crear un Blob para el PDF
+        const blob = new Blob([response.data], { type: "application/pdf" });
+
+        // Crear una URL para el Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Crear un iframe dinámicamente
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none"; // Esconder el iframe
+        iframe.src = url;
+
+        // Añadir el iframe al body del documento
+        document.body.appendChild(iframe);
+
+        // Esperar a que el iframe cargue el PDF y luego llamar a imprimir
+        iframe.onload = () => {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        };
+
+        // Mostrar mensaje de éxito
+        showSuccess("Ticket en PDF generado correctamente.");
+      } catch (error) {
+        if (error.response) {
+          console.error(
+            "Error en la respuesta del servidor:",
+            error.response.data
+          );
+          console.error("Estado:", error.response.status);
+        } else if (error.request) {
+          console.error("Error en la solicitud:", error.request);
+        } else {
+          console.error("Error desconocido:", error.message);
         }
-      );
-      showSuccess(response?.data?.developerMessage);
-      TicketVenta(id);
-    } catch (error) {
-      if (error.response) {
-        // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
-        console.error(
-          "Error en la respuesta del servidor:",
-          error.response.data
+        showError(`Error al generar el ticket: ${error.message}`);
+        console.error("Error al obtener el productos:", error);
+      }
+    },
+    [tokenWo]
+  );
+  /* Contabilizar automaticamente  */
+  const Contabilizar = useCallback(
+    async (id) => {
+      try {
+        const body = {
+          columnaOrdenar: "id",
+          pagina: 0,
+          registrosPorPagina: 1000,
+          orden: "DESC",
+          filtros: [],
+          canal: 2,
+          registroInicial: 0,
+        };
+        const response = await axios.post(
+          `/documentos/contabilizarDocumento/` + id,
+          body,
+          {
+            headers: {
+              Authorization: `WO ${tokenWo}`,
+            },
+          }
         );
-        console.error("Estado:", error.response.status);
-      } else if (error.request) {
-        // La solicitud fue hecha pero no se recibió respuesta
-        console.error("Error en la solicitud:", error.request);
-      } else {
-        // Algo ocurrió al configurar la solicitud
-        console.error("Error desconocido:", error.message);
+        showSuccess(response?.data?.developerMessage);
+        TicketVenta(id);
+      } catch (error) {
+        if (error.response) {
+          // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
+          console.error(
+            "Error en la respuesta del servidor:",
+            error.response.data
+          );
+          console.error("Estado:", error.response.status);
+        } else if (error.request) {
+          // La solicitud fue hecha pero no se recibió respuesta
+          console.error("Error en la solicitud:", error.request);
+        } else {
+          // Algo ocurrió al configurar la solicitud
+          console.error("Error desconocido:", error.message);
+        }
+        showError(`Error contabilizar el pedido: ${error.message}`);
+        console.error("Error al obtener el productos:", error);
       }
-      showError(`Error contabilizar el pedido: ${error.message}`);
-      console.error("Error al obtener el productos:", error);
-    }
-  };
-  /*   const TicketVenta = async (id) => {
-    try {
-      const body = {
-        columnaOrdenar: "id",
-        pagina: 0,
-        registrosPorPagina: 1000,
-        orden: "DESC",
-        filtros: [],
-        canal: 2,
-        registroInicial: 0,
-      };
-      const response = await axios.get(`/documentos/ticketDocumento/` + id, {
-        headers: {
-          Authorization: `WO ${tokenWo}`,
-        },
-      });
+    },
+    [TicketVenta, tokenWo]
+  );
+  /* Generar Factura de venta  */
+  const CrearDocumentoVenta = useCallback(
+    async (pedido, CF) => {
+      try {
+        setloadingPedido(true);
+        let tercero = null;
+        if (!CF) {
+          tercero = buscarTerceroPorNombreCompleto(pedido, listaTerceros);
+        } else {
+          tercero = CF;
+        }
 
-      // El string del PDF que llega desde el servidor
-      const pdfData = response.data;
-
-      // Convertir el string a un Blob (asumiendo que viene en formato base64 o binario)
-      const blob = new Blob([pdfData], { type: "application/pdf" });
-
-      // Crear una URL para el Blob
-      const url = window.URL.createObjectURL(blob);
-
-      // Abrir una nueva pestaña con el PDF para que el usuario lo imprima o lo guarde
-      const newWindow = window.open(url);
-      if (newWindow) {
-        newWindow.focus();
-      } else {
-        console.error("Error al abrir la ventana del PDF");
-      }
-
-      // Mostrar el mensaje de éxito
-      showSuccess("Tiket en pdf generado correctamente.");
-    } catch (error) {
-      if (error.response) {
-        // La solicitud fue hecha y el servidor respondió con un estado diferente a 2xx
-        console.error(
-          "Error en la respuesta del servidor:",
-          error.response.data
+        const renglones = procesarPedido(
+          pedido,
+          listaProductosW_O,
+          pedido.total,
+          tercero
         );
-        console.error("Estado:", error.response.status);
-      } else if (error.request) {
-        // La solicitud fue hecha pero no se recibió respuesta
-        console.error("Error en la solicitud:", error.request);
-      } else {
-        // Algo ocurrió al configurar la solicitud
-        console.error("Error desconocido:", error.message);
-      }
-      showError(`Error contabilizar el pedido: ${error.message}`);
-      console.error("Error al obtener el productos:", error);
-    }
-  }; */
-  const TicketVenta = async (id) => {
-    try {
-      const response = await axios.get(`/documentos/ticketDocumento/` + id, {
-        headers: {
-          Authorization: `WO ${tokenWo}`,
-        },
-        responseType: "arraybuffer", // Asegurarse de que el PDF se maneje como binario
-      });
+        const tokenWo = process.env.REACT_APP_TOKEN_WO;
 
-      // Crear un Blob para el PDF
-      const blob = new Blob([response.data], { type: "application/pdf" });
+        const data = {
+          concepto: "FACTURA WOO",
+          fecha: new Date().toISOString().split("T")[0],
+          prefijo: 21,
+          documentoTipo: "PD",
+          idEmpresa: 2,
+          idTerceroExterno: tercero === 108 ? 108 : tercero,
+          idTerceroInterno: 1,
+          idFormaPago: 4,
+          idMoneda: 31,
+          porcentajeDescuento: false,
+          porcentajeTodosRenglones: false,
+          valDescuento: 0,
+          reglones: renglones,
+          idDetalles: renglones.map((renglon) => renglon.idInventario),
+        };
 
-      // Crear una URL para el Blob
-      const url = window.URL.createObjectURL(blob);
-
-      // Crear un iframe dinámicamente
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none"; // Esconder el iframe
-      iframe.src = url;
-
-      // Añadir el iframe al body del documento
-      document.body.appendChild(iframe);
-
-      // Esperar a que el iframe cargue el PDF y luego llamar a imprimir
-      iframe.onload = () => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-      };
-
-      // Mostrar mensaje de éxito
-      showSuccess("Ticket en PDF generado correctamente.");
-    } catch (error) {
-      if (error.response) {
-        console.error(
-          "Error en la respuesta del servidor:",
-          error.response.data
+        const response = await axios.post(
+          "/documentos/crearDocumentoVenta",
+          data,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `WO ${tokenWo}`,
+            },
+          }
         );
-        console.error("Estado:", error.response.status);
-      } else if (error.request) {
-        console.error("Error en la solicitud:", error.request);
-      } else {
-        console.error("Error desconocido:", error.message);
-      }
-      showError(`Error al generar el ticket: ${error.message}`);
-      console.error("Error al obtener el productos:", error);
-    }
-  };
 
-  /* Funcion de error de token general */
-  const FuncionErrorToken = (error) => {
-    if (error?.response?.status === 401) {
-      window.location.reload();
-      showError("Tu token se vencio, por favor vuelve a iniciar sesión.");
-    } else if (
-      error.response &&
-      error.response.data &&
-      error.response.data.error
-    ) {
-      showError(error?.response?.data.error);
-    } else {
-      showError("Ha ocurrido un error!");
-    }
-  };
+        setloadingPedido(false);
+        showSuccess(response?.data?.developerMessage);
+        if (pedido.status === "processing") {
+          CambiarEstadoPedido("on-hold", pedido);
+        }
+        
+        ListarVentas()
+      /*   await new Promise((resolve) => setTimeout(resolve, 10000)); */
+        Contabilizar(response.data.data.id);
+        
+      } catch (error) {
+        if (error.response?.data?.developerMessage) {
+          showError(error.response?.data?.developerMessage);
+        } else {
+          showError("Hubo un error creando el pedido, vuelva a intentar");
+        }
+        console.error("Error creando documento de venta:", error);
+      }
+    },
+    [
+      CambiarEstadoPedido,
+      listaProductosW_O,
+      listaTerceros,
+      ListarVentas,
+      setloadingPedido,
+      Contabilizar,
+      procesarPedido,
+    ]
+  );
 
   const contextValue = useMemo(() => {
     return {
-      CrearDocumentoVenta,
+      loadingPedido,
       listaProductosW_O,
+      listaTerceros,
+      listaventasWO,
+      CrearDocumentoVenta,
       setlistaProductosW_O,
       ListarProductosWO,
       ListarTerceros,
-      listaTerceros,
       setlistaTerceros,
       setloadingPedido,
-      loadingPedido,
-      listaventasWO,
       setlistaventasWO,
       ListarDocumentoVenta,
       TicketVenta,
     };
   }, [
     listaProductosW_O,
+    listaTerceros,
+    loadingPedido,
+    listaventasWO,
     setlistaProductosW_O,
     CrearDocumentoVenta,
     ListarProductosWO,
     ListarTerceros,
-    listaTerceros,
     setloadingPedido,
-    loadingPedido,
     setlistaTerceros,
-    listaventasWO,
     setlistaventasWO,
     ListarDocumentoVenta,
     TicketVenta,

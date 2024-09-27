@@ -216,7 +216,6 @@ export const ListaProductos = () => {
   };
   const onCellEditComplete = (e) => {
     let { rowData, newValue, field, originalEvent: event } = e;
-    console.log(newValue);
     // Comprobar si el nuevo valor es diferente al valor actual
     if (rowData[field] === newValue) {
       event.preventDefault(); // No hacer nada si el valor no cambia
@@ -276,8 +275,6 @@ export const ListaProductos = () => {
             );
             event.preventDefault();
           } else {
-            console.log(field);
-            console.log(newValue);
             ModificarProducto(rowData.id, field, newValue);
             rowData[field] = newValue;
           }
@@ -331,7 +328,6 @@ export const ListaProductos = () => {
   const [statuses] = useState(["instock", "lowstock", "outofstock"]);
 
   const StockEditor = (options) => {
-    console.log(options);
     return (
       <MultiSelect
         value={getEstado(options.value)}

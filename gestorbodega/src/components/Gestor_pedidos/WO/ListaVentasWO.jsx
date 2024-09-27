@@ -1,62 +1,36 @@
-import React, { useState, useEffect, useRef } from "react";
-import { FilterMatchMode, FilterOperator } from "primereact/api";
-import useControl_Pedidos from "../../../hooks/useControl_Pedidos";
-import useControl_Woocomerce from "../../../hooks/useControl_Woocomerce";
+import React, { useState, useEffect } from "react";
+import { FilterMatchMode } from "primereact/api";
 import useControl_WO from "../../../hooks/useControl_WO";
-import { Navbar, Container, Nav } from "react-bootstrap";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
-import { Tag } from "primereact/tag";
-import { InputNumber } from "primereact/inputnumber";
+
 import { Menubar } from "primereact/menubar";
-import { MultiSelect } from "primereact/multiselect";
-import Swal from "sweetalert2";
+
 import { Skeleton } from "primereact/skeleton";
 import { Dialog } from "primereact/dialog";
 import { PedidoWO } from "./pedidoWO/PedidoWO";
 
 export const ListaVentasWO = () => {
-  const { listaventasWO, setlistaventasWO, ListarDocumentoVenta,TicketVenta } =
-    useControl_WO();
+  const { listaventasWO, ListarDocumentoVenta, TicketVenta } = useControl_WO();
   const [visiblePedidos, setVisiblePedidos] = useState(false);
   const [nomPedido, setnomPedido] = useState("false");
   const [infoPedido, setinfoPedido] = useState("false");
+
 
   useEffect(() => {
     if (listaventasWO.length === 0) {
       ListarDocumentoVenta();
     }
-    console.log(listaventasWO);
     initFilters();
-  }, [listaventasWO]);
+  }, [listaventasWO, ListarDocumentoVenta]);
 
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
 
-  const showError = (error) => {
-    const Toast = Swal.mixin({
-      toast: true,
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 5000,
-      background: "#f3f2e8f1",
-      color: "black",
-      timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.onmouseenter = Swal.stopTimer;
-        toast.onmouseleave = Swal.resumeTimer;
-      },
-    });
-    Toast.fire({
-      icon: "error",
-      title: error ? error : "¡Ha ocurrido un error!",
-      buttonsStyling: false,
-    });
-  };
   const clearFilter = () => {
     initFilters();
   };
@@ -78,85 +52,39 @@ export const ListaVentasWO = () => {
     setGlobalFilterValue("");
   };
 
-  const imageBodyTemplate = (product) => {
-    return (
-      <img
-        src={product?.images[0]?.src}
-        alt={product.image}
-        className="w-6rem shadow-2 border-round"
-        style={{ height: "5vw", width: "5vw" }}
-      />
-    );
+  const exportExcel = () => {
+    const date = new Date().toISOString().split("T")[0];
+    import("xlsx").then((xlsx) => {
+      const worksheet = xlsx.utils.json_to_sheet(ListaVentasWO);
+      const workbook = {
+        Sheets: { data: worksheet },
+        SheetNames: ["data"],
+      };
+      const excelBuffer = xlsx.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+
+      saveAsExcelFile(excelBuffer, `Lista ventas World Office  ${date}`);
+    });
   };
-  const statusBodyTemplate = (estado) => {
-    return (
-      <Tag
-        value={getEstado(estado.status)}
-        severity={getSeverity(estado.status)}
-      ></Tag>
-    );
-  };
+  /* guarda el excel */
+  const saveAsExcelFile = (buffer, fileName) => {
+    import("file-saver").then((module) => {
+      if (module && module.default) {
+        let EXCEL_TYPE =
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
+        let EXCEL_EXTENSION = ".xlsx";
+        const data = new Blob([buffer], {
+          type: EXCEL_TYPE,
+        });
 
-  const getSeverity = (product) => {
-    switch (product) {
-      case "on-hold":
-        return "warning";
-
-      case "processing":
-        return "success";
-
-      case "canceled":
-        return "danger";
-
-      default:
-        return null;
-    }
-  };
-  const getSeverity2 = (product) => {
-    switch (product) {
-      case "instock":
-        return "success";
-
-      case "lowstock":
-        return "warning";
-
-      case "outofstock":
-        return "danger";
-
-      default:
-        return null;
-    }
-  };
-
-  const getEstado2 = (pedidoEstado) => {
-    switch (pedidoEstado) {
-      case "instock":
-        return "En Stock";
-
-      case "lowstock":
-        return "Poco Stock";
-
-      case "outofstock":
-        return "Sin Stock";
-
-      default:
-        return null;
-    }
-  };
-  const getEstado = (pedidoEstado) => {
-    switch (pedidoEstado) {
-      case "on-hold":
-        return "Facturado";
-
-      case "processing":
-        return "Procesando";
-
-      case "canceled":
-        return "cancelado";
-
-      default:
-        return null;
-    }
+        module.default.saveAs(
+          data,
+          fileName + "_export_" + new Date().getTime() + EXCEL_EXTENSION
+        );
+      }
+    });
   };
 
   const start = (
@@ -189,34 +117,20 @@ export const ListaVentasWO = () => {
         className="btn btn-outline-primary color-icon p-1"
         onClick={ListarDocumentoVenta}
       />
+      <Button
+        type="button"
+        icon="pi pi-file-excel"
+        className=" btn btn-outline-primary color-icon p-1"
+        outlined
+        rounded
+        onClick={exportExcel}
+        data-pr-tooltip="XLS"
+      />
     </div>
   );
-
   const header = () => {
     return (
       <Menubar start={start} end={end} className="p-header-datatable2  " />
-    );
-  };
-
-  const [statuses] = useState(["instock", "lowstock", "outofstock"]);
-
-  const StockEditor = (options) => {
-    console.log(options);
-    return (
-      <MultiSelect
-        value={getEstado(options.value)}
-        onChange={(e) => options.editorCallback(e.value)}
-        options={statuses}
-        placeholder="Seleccione estado"
-        itemTemplate={(option) => {
-          return (
-            <Tag
-              value={getEstado2(option)}
-              severity={getSeverity2(option)}
-            ></Tag>
-          );
-        }}
-      />
     );
   };
   const items = Array.from({ length: 15 }, (v, i) => i);
@@ -245,7 +159,7 @@ export const ListaVentasWO = () => {
   return (
     <div className="row">
       <Dialog
-        header={`Pedido de woocomerce ${nomPedido} `}
+        header={`Pedido de World Office ${nomPedido} `}
         visible={visiblePedidos}
         onHide={() => {
           setVisiblePedidos(false);
@@ -338,7 +252,7 @@ export const ListaVentasWO = () => {
                   <i
                     className="pi pi-print"
                     onClick={() => {
-                      TicketVenta(rowData.id)
+                      TicketVenta(rowData.id);
                     }}
                   />
                 );
