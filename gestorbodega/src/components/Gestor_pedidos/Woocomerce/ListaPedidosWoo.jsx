@@ -35,6 +35,7 @@ export const ListaPedidosWoo = () => {
       ListarTerceros();
     }
     initFilters();
+    console.log(ListaPedido)
   }, [ListaPedido]);
 
   const [globalFilterValue, setGlobalFilterValue] = useState("");
@@ -110,7 +111,7 @@ export const ListaPedidosWoo = () => {
       case "processing":
         return "success";
 
-      case "canceled":
+      case "cancelled":
         return "danger";
 
       default:
@@ -156,7 +157,7 @@ export const ListaPedidosWoo = () => {
       case "processing":
         return "Procesando";
 
-      case "canceled":
+      case "cancelled":
         return "cancelado";
       case "completed":
         return "Completo";

@@ -4,8 +4,8 @@ import useControl_Woocomerce from "../../hooks/useControl_Woocomerce";
 import axios from "axios";
 const WOContextControl = createContext();
 const WOProvider = ({ children }) => {
-  const { CambiarEstadoPedido,ListarVentas } = useControl_Woocomerce();
-  const tokenWo = (process.env.REACT_APP_TOKEN_WO);
+  const { CambiarEstadoPedido, ListarVentas } = useControl_Woocomerce();
+  const tokenWo = process.env.REACT_APP_TOKEN_WO;
   const [listaProductosW_O, setlistaProductosW_O] = useState("");
   const [listaTerceros, setlistaTerceros] = useState("");
   const [listaventasWO, setlistaventasWO] = useState("");
@@ -172,12 +172,12 @@ const WOProvider = ({ children }) => {
     [FuncionErrorToken, tokenWo]
   );
 
-  const ListarDocumentoVenta = useCallback(async () => {
+ /*  const ListarDocumentoVenta2 = useCallback(async () => {
     try {
       const body = {
         columnaOrdenar: "fecha,id", // Cambiar a las columnas que necesitas ordenar
         pagina: 0,
-        registrosPorPagina: 19, // Cambiar la cantidad de registros por página
+        registrosPorPagina: 100, // Cambiar la cantidad de registros por página
         orden: "DESC",
         filtros: [
           {
@@ -218,12 +218,22 @@ const WOProvider = ({ children }) => {
           },
         }
       );
+      const fechaHoy = new Date().toLocaleDateString("es-CO", {
+        timeZone: "America/Bogota",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
 
-      const fechaHoy = new Date().toISOString().split("T")[0];
+      // Convertir la fecha al formato YYYY-MM-DD
+      const [dia, mes, año] = fechaHoy.split("/");
+      const fechaFormateada = `${año}-${mes}-${dia}`;
 
-      // Filtrar los resultados para obtener solo los documentos de hoy
+      /*       const fechaHoy = new Date().toISOString().split("T")[0]; */
+
+   /*    // Filtrar los resultados para obtener solo los documentos de hoy
       const documentosDeHoy = response.data.data.content.filter((documento) => {
-        return documento.fecha.startsWith(fechaHoy); // Asegurarse de que la fecha comience con la fecha de hoy
+        return documento.fecha.startsWith(fechaFormateada); // Asegurarse de que la fecha comience con la fecha de hoy
       });
       // Iterar sobre los documentos de hoy para consultar los productos de venta
       for (const documento of documentosDeHoy) {
@@ -257,7 +267,108 @@ const WOProvider = ({ children }) => {
 
       console.error("Error al obtener las ventas:", error);
     }
-  }, [ConsultarProductosVentas, FuncionErrorToken, tokenWo]);
+  }, [ConsultarProductosVentas, FuncionErrorToken, tokenWo]);  */
+  const ListarDocumentoVenta = useCallback(
+    async (fechaInicio, fechaFin) => {
+      try {
+        const body = {
+          columnaOrdenar: "fecha,id", // Cambiar a las columnas que necesitas ordenar
+          pagina: 0,
+          registrosPorPagina: 100, // Cambiar la cantidad de registros por página
+          orden: "DESC",
+          filtros: [
+            {
+              atributo: "documentoTipo.codigoDocumento",
+              valor: "FV",
+              valor2: null,
+              tipoFiltro: 0,
+              tipoDato: 0,
+              nombreColumna: null,
+              valores: null,
+              clase: null,
+              operador: 0,
+              subGrupo: "filtro",
+            },
+            {
+              atributo: "moneda.id",
+              valor: "31",
+              valor2: null,
+              tipoFiltro: 0,
+              tipoDato: 4,
+              nombreColumna: null,
+              valores: null,
+              clase: null,
+              operador: 0,
+              subGrupo: "filtro",
+            },
+          ],
+          canal: 0, // Cambiado el canal de 2 a 0 según el nuevo formato
+          registroInicial: 0,
+        };
+
+        const response = await axios.post(
+          "/documentos/listarDocumentoVenta",
+          body,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `WO ${tokenWo}`,
+            },
+          }
+        );
+
+        // Si no hay rango de fechas, usar la fecha de hoy
+        const hoy = new Date().toLocaleDateString("es-CO", {
+          timeZone: "America/Bogota",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+        const [dia, mes, año] = hoy.split("/");
+        const fechaHoy = `${año}-${mes}-${dia}`;
+
+        // Filtrar por la fecha de inicio y fin si están definidas, de lo contrario usar la fecha de hoy
+        const documentosFiltrados = response.data.data.content.filter(
+          (documento) => {
+            const fechaDocumento = documento.fecha.split("T")[0];
+            if (fechaInicio && fechaFin) {
+              return (
+                fechaDocumento >= fechaInicio && fechaDocumento <= fechaFin
+              );
+            } else {
+              return fechaDocumento === fechaHoy;
+            }
+          }
+        );
+
+        // Consultar productos para cada documento
+        for (const documento of documentosFiltrados) {
+          const { productos, totalPedido } = await ConsultarProductosVentas(
+            documento.id
+          );
+          documento.productos = productos;
+          documento.totalPedido = totalPedido;
+        }
+
+        // Actualizar la lista con los documentos y productos
+        setlistaventasWO(documentosFiltrados);
+      } catch (error) {
+        FuncionErrorToken(error);
+        if (error.response) {
+          console.error(
+            "Error en la respuesta del servidor:",
+            error.response.data
+          );
+        } else if (error.request) {
+          console.error("Error en la solicitud:", error.request);
+        } else {
+          console.error("Error desconocido:", error.message);
+        }
+        console.error("Error al obtener las ventas:", error);
+      }
+    },
+    [ConsultarProductosVentas, FuncionErrorToken, tokenWo]
+  );
 
   /* Listar terceros en World Office */
   const ListarTerceros = useCallback(async () => {
@@ -300,6 +411,87 @@ const WOProvider = ({ children }) => {
       console.error("Error al obtener los productos:", error);
     }
   }, [FuncionErrorToken, tokenWo]);
+  /* Eliminar factura World Office */
+  const EliminarDocumentoVenta = useCallback(
+    async (id) => {
+      try {
+        const body = {
+          columnaOrdenar: "id",
+          pagina: 0,
+          registrosPorPagina: 1000,
+          orden: "DESC",
+          filtros: [],
+          canal: 2,
+          registroInicial: 0,
+        };
+
+        await axios.delete("/documentos/eliminar/" + id, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `WO ${tokenWo}`,
+          },
+        });
+        showSuccess("Documento eliminado exitosamente");
+      } catch (error) {
+        FuncionErrorToken(error);
+
+        if (error.response) {
+          console.error(
+            "Error en la respuesta del servidor:",
+            error.response.data
+          );
+          console.error("Estado:", error.response.status);
+        } else if (error.request) {
+          console.error("Error en la solicitud:", error.request);
+        } else {
+          console.error("Error desconocido:", error.message);
+        }
+
+        console.error("Error al obtener los productos:", error);
+      }
+    },
+    [FuncionErrorToken, tokenWo]
+  );
+  const AnularDocumentoVenta = useCallback(
+    async (id) => {
+      try {
+        const body = {
+          columnaOrdenar: "id",
+          pagina: 0,
+          registrosPorPagina: 1000,
+          orden: "DESC",
+          filtros: [],
+          canal: 2,
+          registroInicial: 0,
+        };
+
+        await axios.post("/documentos/anularDocumento/" + id, body, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `WO ${tokenWo}`,
+          },
+        });
+        showSuccess("Documento anulado exitosamente");
+      } catch (error) {
+        FuncionErrorToken(error);
+
+        if (error.response) {
+          console.error(
+            "Error en la respuesta del servidor:",
+            error.response.data
+          );
+          console.error("Estado:", error.response.status);
+        } else if (error.request) {
+          console.error("Error en la solicitud:", error.request);
+        } else {
+          console.error("Error desconocido:", error.message);
+        }
+
+        console.error("Error al obtener los productos:", error);
+      }
+    },
+    [FuncionErrorToken, tokenWo]
+  );
   /* 
   const ConsultarProducto = async (codigo) => {
     try {
@@ -664,12 +856,22 @@ const WOProvider = ({ children }) => {
           tercero
         );
         const tokenWo = process.env.REACT_APP_TOKEN_WO;
+        const fechaHoy = new Date().toLocaleDateString("es-CO", {
+          timeZone: "America/Bogota",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+
+        // Convertir la fecha al formato YYYY-MM-DD
+        const [dia, mes, año] = fechaHoy.split("/");
+        const fechaFormateada = `${año}-${mes}-${dia}`;
 
         const data = {
           concepto: "FACTURA WOO",
-          fecha: new Date().toISOString().split("T")[0],
+          fecha: fechaFormateada,
           prefijo: 21,
-          documentoTipo: "PD",
+          documentoTipo: "FV",
           idEmpresa: 2,
           idTerceroExterno: tercero === 108 ? 108 : tercero,
           idTerceroInterno: 1,
@@ -698,11 +900,10 @@ const WOProvider = ({ children }) => {
         if (pedido.status === "processing") {
           CambiarEstadoPedido("on-hold", pedido);
         }
-        
-        ListarVentas()
-      /*   await new Promise((resolve) => setTimeout(resolve, 10000)); */
+
+        ListarVentas();
+        /*   await new Promise((resolve) => setTimeout(resolve, 10000)); */
         Contabilizar(response.data.data.id);
-        
       } catch (error) {
         if (error.response?.data?.developerMessage) {
           showError(error.response?.data?.developerMessage);
@@ -729,6 +930,8 @@ const WOProvider = ({ children }) => {
       listaProductosW_O,
       listaTerceros,
       listaventasWO,
+      EliminarDocumentoVenta,
+      AnularDocumentoVenta,
       CrearDocumentoVenta,
       setlistaProductosW_O,
       ListarProductosWO,
@@ -744,6 +947,8 @@ const WOProvider = ({ children }) => {
     listaTerceros,
     loadingPedido,
     listaventasWO,
+    AnularDocumentoVenta,
+    EliminarDocumentoVenta,
     setlistaProductosW_O,
     CrearDocumentoVenta,
     ListarProductosWO,

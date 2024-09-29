@@ -7,6 +7,8 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
+import { Calendar } from "primereact/calendar";
+import { MultiSelect } from "primereact/multiselect";
 
 import { Menubar } from "primereact/menubar";
 
@@ -15,19 +17,35 @@ import { Dialog } from "primereact/dialog";
 import { PedidoWO } from "./pedidoWO/PedidoWO";
 
 export const ListaVentasWO = () => {
-  const { listaventasWO, ListarDocumentoVenta, TicketVenta } = useControl_WO();
+  const {
+    listaventasWO,
+    ListarDocumentoVenta,
+    TicketVenta,
+    EliminarDocumentoVenta,
+    AnularDocumentoVenta,
+  } = useControl_WO();
   const [visiblePedidos, setVisiblePedidos] = useState(false);
   const [nomPedido, setnomPedido] = useState("false");
   const [infoPedido, setinfoPedido] = useState("false");
-
+  const [filtroFecha, setFiltroFecha] = useState();
+  const [calendar, setcalendar] = useState(false);
+  const [dates, setDates] = useState(null);
 
   useEffect(() => {
     if (listaventasWO.length === 0) {
       ListarDocumentoVenta();
     }
+    console.log(listaventasWO);
     initFilters();
   }, [listaventasWO, ListarDocumentoVenta]);
-
+  useEffect(() => {
+    // Llama a la función asincrónica para obtener los datos
+    if (filtroFecha?.some((filtro) => filtro.name === "Rango")) {
+      setcalendar(true);
+    } else {
+      setcalendar(false);
+    }
+  }, [filtroFecha]);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
 
@@ -54,8 +72,33 @@ export const ListaVentasWO = () => {
 
   const exportExcel = () => {
     const date = new Date().toISOString().split("T")[0];
+    // Transformar los datos para extraer solo la información relevante
+    const ventasParaExportar = listaventasWO.map((venta) => {
+      return {
+        id: venta.id,
+        prefijo: venta.prefijo,
+        numero: venta.numero,
+        fecha: venta.fecha,
+        empresa: venta.empresa,
+        terceroExterno: `${venta.primerNombreTerceroExterno} ${venta.primerApellidoTerceroExterno}`,
+        terceroInterno: `${venta.primerNombreTerceroInterno} ${venta.primerApellidoTerceroInterno}`,
+        formaPago: venta.formaPago,
+        concepto: venta.concepto,
+        productos: venta.productos
+          .map((producto) => producto.inventario.descripcion)
+          .join(", "),
+        cantidadTotal: venta.productos.reduce(
+          (total, producto) => total + Number(producto.cantidad),
+          0
+        ),
+        valorTotal: venta.productos.reduce(
+          (total, producto) => total + Number(producto.valorTotalRenglon),
+          0
+        ),
+      };
+    });
     import("xlsx").then((xlsx) => {
-      const worksheet = xlsx.utils.json_to_sheet(ListaVentasWO);
+      const worksheet = xlsx.utils.json_to_sheet(ventasParaExportar);
       const workbook = {
         Sheets: { data: worksheet },
         SheetNames: ["data"],
@@ -108,8 +151,124 @@ export const ListaVentasWO = () => {
       </IconField>
     </div>
   );
+  const fechasFil = [
+    { name: "Hoy", rango: "Hoy" },
+    { name: "Mes pasado", rango: "Mes pasado" },
+    { name: "Este mes", rango: "Este mes" },
+    { name: "Rango", rango: "Rango" },
+    { name: "Trimestre", rango: "Trimestre" },
+    { name: "Semestre", rango: "Semestre" },
+  ];
+  const isDisabled = () => {
+    // Verifica si cada objeto en el array tiene las propiedades 'name' y 'rango' definidas
+    return (
+      filtroFecha?.length === 0 ||
+      filtroFecha?.some((filtro) => !filtro.name || !filtro.rango)
+    );
+  };
+
+  const obtenerRangoFechas = (rango) => {
+    const hoy = new Date();
+    let fechaInicio;
+    let fechaFin = hoy;
+
+    switch (rango) {
+      case "Hoy":
+        // Hoy
+        fechaInicio = hoy;
+        fechaFin = hoy;
+        break;
+      case "Este mes":
+        // Este mes
+        fechaInicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1); // Primer día del mes actual
+        fechaFin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0); // Último día del mes actual
+        break;
+      case "Mes pasado":
+        // Mes pasado
+        fechaInicio = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+        fechaFin = new Date(hoy.getFullYear(), hoy.getMonth(), 0); // Último día del mes pasado
+        break;
+      case "Rango":
+        // Rango personalizado, aquí puedes agregar tu lógica personalizada
+        fechaInicio = null;
+        fechaFin = null;
+        break;
+      case "Trimestre":
+        // Trimestre pasado
+        const mesActual = hoy.getMonth();
+        const trimestreActual = Math.floor((mesActual + 3) / 3);
+        fechaInicio = new Date(hoy.getFullYear(), (trimestreActual - 2) * 3, 1); // Inicio del trimestre pasado
+        fechaFin = new Date(hoy.getFullYear(), (trimestreActual - 1) * 3, 0); // Fin del trimestre pasado
+        break;
+      case "Semestre":
+        // Semestre pasado
+        const mesInicioSemestre = hoy.getMonth() < 6 ? 0 : 6; // Determinar si el semestre es la primera mitad o la segunda mitad del año
+        const añoSemestre =
+          hoy.getMonth() < 6 ? hoy.getFullYear() - 1 : hoy.getFullYear(); // Ajustar el año si estamos en la primera mitad del año
+        fechaInicio = new Date(añoSemestre, mesInicioSemestre, 1); // Inicio del semestre pasado
+        fechaFin = new Date(añoSemestre, mesInicioSemestre + 5, 0); // Fin del semestre pasado
+        break;
+      default:
+        fechaInicio = null;
+        fechaFin = null;
+        break;
+    }
+
+    return {
+      fechaInicio: fechaInicio ? fechaInicio.toISOString().split("T")[0] : null,
+      fechaFin: fechaFin ? fechaFin.toISOString().split("T")[0] : null,
+    };
+  };
+  const funcionFiltrar = () => {
+    if (filtroFecha?.some((filtro) => filtro.name === "Rango")) {
+      ListarDocumentoVenta(
+        dates[0].toISOString().split("T")[0],
+        dates[1].toISOString().split("T")[0]
+      );
+    } else {
+      const fecha = obtenerRangoFechas(filtroFecha[0].name);
+      ListarDocumentoVenta(fecha.fechaInicio, fecha.fechaFin);
+    }
+  };
   const end = (
     <div className="d-flex ">
+      <MultiSelect
+        value={filtroFecha}
+        onChange={(e) => setFiltroFecha(e.value)}
+        options={fechasFil}
+        placeholder="Seleccione filtro de fecha"
+        selectAll={false}
+        selectionLimit={1}
+        optionLabel="name"
+        display="chip"
+      />
+      <Calendar
+        visible={calendar}
+        value={dates}
+        onChange={(e) => setDates(e.value)}
+        selectionMode="range"
+        readOnlyInput
+        maxDate={new Date()}
+        hideOnRangeSelection
+        style={{ maxWidth: "15vw" }}
+        className={calendar ? "mx-2" : "d-none"}
+        showButtonBar
+        locate="es"
+        showIcon
+        placeholder="Rango de fecha"
+      />
+
+      <Button
+        disabled={isDisabled()}
+        type="button"
+        icon="pi pi-filter"
+        label="Filtrar"
+        outlined
+        className="btn btn-outline-primary color-icon "
+        onClick={() => {
+          funcionFiltrar();
+        }}
+      />
       <Button
         type="button"
         icon="pi pi-refresh"
@@ -193,6 +352,7 @@ export const ListaVentasWO = () => {
             editMode="cell"
             stripedRows
             footer={footer}
+            currentPageReportTemplate="hola"
           >
             <Column
               className="mx-3"
@@ -247,17 +407,52 @@ export const ListaVentasWO = () => {
             <Column
               className="mx-3"
               body={(rowData) => {
+                console.log(rowData.concepto);
+                const isAnulada = rowData.concepto === "ANULADA"; // Verificar si el documento está anulado
+
                 return (
-                  // Asegúrate de retornar algo aquí
-                  <i
-                    className="pi pi-print"
-                    onClick={() => {
-                      TicketVenta(rowData.id);
-                    }}
-                  />
+                  <div className="d-flex justify-content-start">
+                    {/* Icono de impresión, se desactiva si está anulado */}
+                    <i
+                      className={`pi pi-print hover-grow mx-2 ${
+                        isAnulada ? "text-muted" : ""
+                      }`}
+                      onClick={() => {
+                        if (!isAnulada) TicketVenta(rowData.id);
+                      }}
+                      style={{ cursor: isAnulada ? "not-allowed" : "pointer" }}
+                    />
+
+                    {/* Icono de anulación, se desactiva si está anulado */}
+                    <i
+                      className={`pi pi-times hover-grow mx-2 ${
+                        isAnulada ? "text-muted" : ""
+                      }`}
+                      onClick={() => {
+                        if (!isAnulada) AnularDocumentoVenta(rowData.id);
+                      }}
+                      style={{
+                        cursor: isAnulada ? "not-allowed" : "pointer",
+                        color: isAnulada ? "gray" : "orange",
+                      }}
+                    />
+
+                    {/* Icono de eliminación, se desactiva si está anulado */}
+                    <i
+                      className={`pi pi-trash hover-grow mx-2 ${
+                        isAnulada ? "text-muted" : ""
+                      }`}
+                      onClick={() => {
+                        if (!isAnulada) EliminarDocumentoVenta(rowData.id);
+                      }}
+                      style={{
+                        cursor: isAnulada ? "not-allowed" : "pointer",
+                        color: isAnulada ? "gray" : "red",
+                      }}
+                    />
+                  </div>
                 );
               }}
-              style={{ maxWidth: "3rem" }}
             />
           </DataTable>
         </div>

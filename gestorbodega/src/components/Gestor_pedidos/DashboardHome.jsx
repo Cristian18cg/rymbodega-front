@@ -18,7 +18,7 @@ export const DashboardHome = () => {
   useEffect(() => {
     // Llama a la función asincrónica para obtener- los datos
     delayedRequest();
-  }, []);
+  }, [delayedRequest]);
 
   const generarColores = (num) => {
     const colores = [];
@@ -109,11 +109,13 @@ export const DashboardHome = () => {
   /* Grafica ventas por entregador */
   useEffect(() => {
     if (estadisticas && estadisticas.top_pedidos_entregador) {
-      const documentStyle = getComputedStyle(document.documentElement);
-  
       // Extraer los nombres y totales de los entregadores
-      const nombres = estadisticas.top_pedidos_entregador.map(entregador => entregador.documento__nombres);
-      const totales = estadisticas.top_pedidos_entregador.map(entregador => entregador.total);
+      const nombres = estadisticas.top_pedidos_entregador.map(
+        (entregador) => entregador.documento__nombres
+      );
+      const totales = estadisticas.top_pedidos_entregador.map(
+        (entregador) => entregador.total
+      );
       const colores = generarColores(totales.length);
       const borderColors = colores.map((color) => color.replace("0.2", "1"));
       const hover = colores.map((color) => color.replace("0.1", "5"));
@@ -129,26 +131,21 @@ export const DashboardHome = () => {
           },
         ],
       };
-  
+
       const options = {
         cutout: "60%", // Para gráficos de tipo "doughnut" o "pie"
       };
-  
+
       setchartEntregadores(data); // Actualiza el estado con los datos
       setChartOptionsEntregadores(options); // Actualiza las opciones de la gráfica
     }
   }, [estadisticas]);
 
   return (
-    <div className="row mt-2" style={{width:"100%"}}>
-      <div className="col-md-12 mt-2 ">
-        <div className="card d-flex  justify-content-center align-items-center">
-          <Chart
-            type="bar"
-            data={chartData}
-            options={chartOptions}
-            style={{width: "90vw", height:"50vh" }}
-          />
+    <div className="row mt-2" style={{ width: "100%" }}>
+      <div className="col-md-12 mt-2 " style={{ maxHeight: "30rem" }}>
+      <div className="card d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "30rem", minWidth:"100%" }}> 
+          <Chart type="bar" data={chartData} options={chartOptions} style={{ minHeight: "30rem",maxHeight: "30rem", minWidth:"100%" }} />
         </div>
       </div>
       <div className="col-md-6 mt-2 mb-2">

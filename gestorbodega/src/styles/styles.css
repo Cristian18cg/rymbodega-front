@@ -669,3 +669,10 @@ box-shadow: 0 1 0.3rem rgb(156, 22, 1)!important;
     box-shadow: 0 0 0.2rem rgb(156, 22, 1)!important ;
     
     }
+    .hover-grow {
+      transition: transform 0.3s ease;
+    }
+    
+    .hover-grow:hover {
+      transform: scale(1.1);
+    } 
