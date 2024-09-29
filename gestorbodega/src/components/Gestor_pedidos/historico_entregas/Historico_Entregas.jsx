@@ -259,7 +259,6 @@ export const Historico_Entregas = () => {
       </Navbar>
     );
   };
-  const [chartData, setChartData] = useState({});
   const [chartOptions, setChartOptions] = useState({});
 
   useEffect(() => {
@@ -301,7 +300,7 @@ export const Historico_Entregas = () => {
       <Chart
         type="pie"
         data={datafuntion(rowData.tiendas, rowData.mayoristas)}
-        options={setChartOptions}
+        options={chartOptions}
         style={{ maxWidth: "10rem" }}
       />
     );
