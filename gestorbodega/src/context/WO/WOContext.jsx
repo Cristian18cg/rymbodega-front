@@ -172,7 +172,7 @@ const WOProvider = ({ children }) => {
     [FuncionErrorToken, tokenWo]
   );
 
- /*  const ListarDocumentoVenta2 = useCallback(async () => {
+  /*  const ListarDocumentoVenta2 = useCallback(async () => {
     try {
       const body = {
         columnaOrdenar: "fecha,id", // Cambiar a las columnas que necesitas ordenar
@@ -231,7 +231,7 @@ const WOProvider = ({ children }) => {
 
       /*       const fechaHoy = new Date().toISOString().split("T")[0]; */
 
-   /*    // Filtrar los resultados para obtener solo los documentos de hoy
+  /*    // Filtrar los resultados para obtener solo los documentos de hoy
       const documentosDeHoy = response.data.data.content.filter((documento) => {
         return documento.fecha.startsWith(fechaFormateada); // Asegurarse de que la fecha comience con la fecha de hoy
       });
@@ -343,11 +343,24 @@ const WOProvider = ({ children }) => {
 
         // Consultar productos para cada documento
         for (const documento of documentosFiltrados) {
-          const { productos, totalPedido } = await ConsultarProductosVentas(
-            documento.id
-          );
-          documento.productos = productos;
-          documento.totalPedido = totalPedido;
+          try {
+            // Llamada a la función para consultar los productos del documento
+            const { productos = [], totalPedido = 0 } =
+              await ConsultarProductosVentas(documento.id);
+
+            // Añadir los productos y totalPedido al documento
+            documento.productos = productos;
+            documento.totalPedido = totalPedido;
+          } catch (error) {
+            console.error(
+              `Error al consultar productos para el documento con ID ${documento.id}:`,
+              error
+            );
+
+            // Asignar valores por defecto en caso de error
+            documento.productos = [];
+            documento.totalPedido = 0;
+          }
         }
 
         // Actualizar la lista con los documentos y productos

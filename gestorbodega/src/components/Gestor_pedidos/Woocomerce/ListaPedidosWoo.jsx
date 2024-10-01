@@ -409,10 +409,10 @@ export const ListaPedidosWoo = () => {
               header="Hora envio"
               body={(rowData) => {
                 console.log(rowData.meta_data);
-                const Hora = rowData.meta_data.map(hora =>{
-                  if(hora.key === "dtwc_delivery_time")
+                const Hora = rowData?.meta_data.map(hora =>{
+                  if(hora?.key === "dtwc_delivery_time")
                   {
-                    return(hora.value)
+                    return(hora?.value)
                   }
                 })
               return(<span className="mx-3">{Hora ? Hora :"No proporcionada"}</span>)
