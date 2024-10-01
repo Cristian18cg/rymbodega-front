@@ -21,7 +21,12 @@ import { PedidoWoo } from "./Pedido/PedidoWoo";
 
 export const ListaPedidosWoo = () => {
   const { ListarVentas, ListaPedido, setListaPedido } = useControl_Woocomerce();
-  const { ListarProductosWO, listaProductosW_O,ListarTerceros,listaTerceros } = useControl_WO();
+  const {
+    ListarProductosWO,
+    listaProductosW_O,
+    ListarTerceros,
+    listaTerceros,
+  } = useControl_WO();
   const [visiblePedidos, setVisiblePedidos] = useState(false);
   const [nomPedido, setnomPedido] = useState("false");
   const [infoPedido, setinfoPedido] = useState("false");
@@ -31,11 +36,12 @@ export const ListaPedidosWoo = () => {
     }
     if (listaProductosW_O.length === 0) {
       ListarProductosWO();
-    } if (listaTerceros.length === 0) {
+    }
+    if (listaTerceros.length === 0) {
       ListarTerceros();
     }
     initFilters();
-    console.log(ListaPedido)
+    console.log(ListaPedido);
   }, [ListaPedido]);
 
   const [globalFilterValue, setGlobalFilterValue] = useState("");
@@ -179,7 +185,7 @@ export const ListaPedidosWoo = () => {
         type: "array",
       });
 
-      saveAsExcelFile(excelBuffer,  `Lista pedidos woocomerce `);
+      saveAsExcelFile(excelBuffer, `Lista pedidos woocomerce `);
     });
   };
   /* guarda el excel */
@@ -230,15 +236,15 @@ export const ListaPedidosWoo = () => {
         className="btn btn-outline-primary color-icon p-1"
         onClick={ListarVentas}
       />
-       <Button
-                  type="button"
-                  icon="pi pi-file-excel"
-                  className=" btn btn-outline-primary color-icon p-1"
-                  outlined
-                  rounded
-                  onClick={exportExcel}
-                  data-pr-tooltip="XLS"
-                />
+      <Button
+        type="button"
+        icon="pi pi-file-excel"
+        className=" btn btn-outline-primary color-icon p-1"
+        outlined
+        rounded
+        onClick={exportExcel}
+        data-pr-tooltip="XLS"
+      />
     </div>
   );
   const header = () => {
@@ -246,8 +252,6 @@ export const ListaPedidosWoo = () => {
       <Menubar start={start} end={end} className="p-header-datatable2  " />
     );
   };
-
-
 
   const [statuses] = useState(["instock", "lowstock", "outofstock"]);
 
@@ -399,7 +403,21 @@ export const ListaPedidosWoo = () => {
                 }).format(rowData.total)
               }
             />
-
+            <Column
+              sortable
+              field="meta_data"
+              header="Hora envio"
+              body={(rowData) => {
+                console.log(rowData.meta_data);
+                const Hora = rowData.meta_data.map(hora =>{
+                  if(hora.key === "dtwc_delivery_time")
+                  {
+                    return(hora.value)
+                  }
+                })
+              return(<span className="mx-3">{Hora ? Hora :"No proporcionada"}</span>)
+              }}
+            />
             <Column
               sortable
               field="status"

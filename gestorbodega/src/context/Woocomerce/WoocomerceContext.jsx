@@ -166,6 +166,7 @@ const FuncionErrorToken = useCallback( (error) => {
           },
         }
       );
+      console.log('ventas', response.data)
       setListaPedido(response.data);
     } catch (error) {
       FuncionErrorToken(error);
