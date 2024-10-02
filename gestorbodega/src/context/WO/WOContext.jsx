@@ -10,6 +10,7 @@ const WOProvider = ({ children }) => {
   const [listaTerceros, setlistaTerceros] = useState("");
   const [listaventasWO, setlistaventasWO] = useState("");
   const [loadingPedido, setloadingPedido] = useState(false);
+  const [loadingListar, setloadingListar] = useState(false);
 
   const showError = (error) => {
     const Toast = Swal.mixin({
@@ -57,12 +58,8 @@ const WOProvider = ({ children }) => {
     if (error?.response?.status === 401) {
       window.location.reload();
       showError("Tu token se vencio, por favor vuelve a iniciar sesión.");
-    } else if (
-      error.response &&
-      error.response.data &&
-      error.response.data.error
-    ) {
-      showError(error?.response?.data.error);
+    } else if (error.response.data) {
+      showError(error?.response?.data?.developerMessage);
     } else {
       showError("Ha ocurrido un error!");
     }
@@ -152,14 +149,17 @@ const WOProvider = ({ children }) => {
           totalPedido,
         };
       } catch (error) {
-        FuncionErrorToken(error);
-
         if (error.response) {
           console.error(
             "Error en la respuesta del servidor:",
             error.response.data
           );
           console.error("Estado:", error.response.status);
+          if (error.response.data.developerMessage) {
+            showError(
+              `Error obteniendo los productos del pedido con ID: ${id} -> ${error?.response?.data?.developerMessage}`
+            );
+          }
         } else if (error.request) {
           console.error("Error en la solicitud:", error.request);
         } else {
@@ -169,7 +169,7 @@ const WOProvider = ({ children }) => {
         console.error("Error al obtener los productos:", error);
       }
     },
-    [FuncionErrorToken, tokenWo]
+    [tokenWo]
   );
 
   /*  const ListarDocumentoVenta2 = useCallback(async () => {
@@ -269,7 +269,8 @@ const WOProvider = ({ children }) => {
     }
   }, [ConsultarProductosVentas, FuncionErrorToken, tokenWo]);  */
   const ListarDocumentoVenta = useCallback(
-    async (fechaInicio, fechaFin) => {
+    async (fechaInicio, fechaFin, actualizar) => {
+      setloadingListar(true);
       try {
         const body = {
           columnaOrdenar: "fecha,id", // Cambiar a las columnas que necesitas ordenar
@@ -362,10 +363,16 @@ const WOProvider = ({ children }) => {
             documento.totalPedido = 0;
           }
         }
+        setloadingListar(false);
 
         // Actualizar la lista con los documentos y productos
         setlistaventasWO(documentosFiltrados);
+        if (actualizar) {
+          showSuccess("Ventas actualizadas con exito.");
+        }
       } catch (error) {
+        setloadingListar(false);
+
         FuncionErrorToken(error);
         if (error.response) {
           console.error(
@@ -918,6 +925,8 @@ const WOProvider = ({ children }) => {
         /*   await new Promise((resolve) => setTimeout(resolve, 10000)); */
         Contabilizar(response.data.data.id);
       } catch (error) {
+        setloadingPedido(false);
+
         if (error.response?.data?.developerMessage) {
           showError(error.response?.data?.developerMessage);
         } else {
@@ -943,6 +952,8 @@ const WOProvider = ({ children }) => {
       listaProductosW_O,
       listaTerceros,
       listaventasWO,
+      loadingListar,
+      setloadingListar,
       EliminarDocumentoVenta,
       AnularDocumentoVenta,
       CrearDocumentoVenta,
@@ -960,6 +971,8 @@ const WOProvider = ({ children }) => {
     listaTerceros,
     loadingPedido,
     listaventasWO,
+    loadingListar,
+    setloadingListar,
     AnularDocumentoVenta,
     EliminarDocumentoVenta,
     setlistaProductosW_O,

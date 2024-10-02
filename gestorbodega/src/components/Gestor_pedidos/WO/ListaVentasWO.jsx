@@ -23,6 +23,7 @@ export const ListaVentasWO = () => {
     TicketVenta,
     EliminarDocumentoVenta,
     AnularDocumentoVenta,
+    loadingListar,
   } = useControl_WO();
   const [visiblePedidos, setVisiblePedidos] = useState(false);
   const [nomPedido, setnomPedido] = useState("false");
@@ -35,7 +36,6 @@ export const ListaVentasWO = () => {
     if (listaventasWO.length === 0) {
       ListarDocumentoVenta();
     }
-    console.log(listaventasWO);
     initFilters();
   }, [listaventasWO, ListarDocumentoVenta]);
   useEffect(() => {
@@ -273,8 +273,11 @@ export const ListaVentasWO = () => {
         type="button"
         icon="pi pi-refresh"
         outlined
+        loading={loadingListar}
         className="btn btn-outline-primary color-icon p-1"
-        onClick={ListarDocumentoVenta}
+        onClick={() => {
+          ListarDocumentoVenta(null, null, true);
+        }}
       />
       <Button
         type="button"
