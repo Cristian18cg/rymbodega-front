@@ -151,14 +151,21 @@ const FuncionErrorToken = useCallback( (error) => {
     try {
       const ConsumerKey = tokenWoo;
       const consumerSecret = tokenWoo2;
-      // Obtén la fecha de hoy a las 00:00:00 en formato ISO
+  
+      // Fecha de hoy a las 00:00:00 en formato ISO
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Establece las horas, minutos, segundos y milisegundos a 0
-      const todayISO = today.toISOString(); // Convertir a formato ISO
-
-      const response = await wooAxios.get(
-        `wp-json/wc/v3/orders?after=${todayISO}`,
-
+      today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
+  
+      // Fecha de ayer a las 00:00:00 en formato ISO
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1); // Retrocede un día
+      yesterday.setHours(0, 0, 0, 0);
+      const yesterdayISO = yesterday.toISOString();
+  
+      // Llamada para obtener pedidos de ayer con estado "processing"
+      const responseYesterday = await wooAxios.get(
+        `wp-json/wc/v3/orders?after=${yesterdayISO}&before=${todayISO}&status=processing`,
         {
           auth: {
             username: ConsumerKey,
@@ -166,14 +173,33 @@ const FuncionErrorToken = useCallback( (error) => {
           },
         }
       );
-      console.log('ventas', response.data)
-      setListaPedido(response.data);
+  
+      // Llamada para obtener pedidos de hoy sin importar el estado
+      const responseToday = await wooAxios.get(
+        `wp-json/wc/v3/orders?after=${todayISO}`,
+        {
+          auth: {
+            username: ConsumerKey,
+            password: consumerSecret,
+          },
+        }
+      );
+  
+      // Combina las listas de pedidos de ayer y hoy
+      const allOrders = [...responseYesterday.data, ...responseToday.data];
+  
+      // Actualiza el estado con los pedidos combinados
+      setListaPedido(allOrders);
+  
+      console.log('Pedidos de ayer y hoy:', allOrders);
     } catch (error) {
       FuncionErrorToken(error);
       console.error("Error obteniendo pedidos:", error);
       // Maneja el error según sea necesario, como mostrar una notificación al usuario.
     }
-  },[FuncionErrorToken,tokenWoo,tokenWoo2]);
+  }, [FuncionErrorToken, tokenWoo, tokenWoo2]);
+  
+  
   const CambiarEstadoPedido = useCallback(async (estado, pedido) => {
     try {
       const ConsumerKey = tokenWoo;

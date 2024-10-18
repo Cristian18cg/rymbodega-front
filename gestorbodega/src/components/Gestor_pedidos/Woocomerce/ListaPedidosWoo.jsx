@@ -31,9 +31,8 @@ export const ListaPedidosWoo = () => {
   const [nomPedido, setnomPedido] = useState("false");
   const [infoPedido, setinfoPedido] = useState("false");
   useEffect(() => {
-    if (ListaPedido.length === 0) {
-      ListarVentas();
-    }
+    ListarVentas();
+
     if (listaProductosW_O.length === 0) {
       ListarProductosWO();
     }
@@ -42,7 +41,7 @@ export const ListaPedidosWoo = () => {
     }
     initFilters();
     console.log(ListaPedido);
-  }, [ListaPedido]);
+  }, []);
 
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
@@ -219,12 +218,16 @@ export const ListaPedidosWoo = () => {
       <IconField iconPosition="left">
         <InputIcon className="pi pi-search" />
         <InputText
-          className="mx-2"
+          className=" mt-2 "
           value={globalFilterValue}
           onChange={onGlobalFilterChange}
-          placeholder="Buscar palabra"
+          placeholder="Filtro pedidos"
         />
       </IconField>
+      <h1 classname="mx-5" style={{ marginLeft: "30px", color: "white" }}>
+        {" "}
+        Lista ventas pagina web
+      </h1>
     </div>
   );
   const end = (
@@ -409,13 +412,16 @@ export const ListaPedidosWoo = () => {
               header="Hora envio"
               body={(rowData) => {
                 console.log(rowData.meta_data);
-                const Hora = rowData?.meta_data.map(hora =>{
-                  if(hora?.key === "dtwc_delivery_time")
-                  {
-                    return(hora?.value)
+                const Hora = rowData?.meta_data.map((hora) => {
+                  if (hora?.key === "dtwc_delivery_time") {
+                    return hora?.value;
                   }
-                })
-              return(<span className="mx-3">{Hora ? Hora :"No proporcionada"}</span>)
+                });
+                return (
+                  <span className="mx-3">
+                    {Hora ? Hora : "No proporcionada"}
+                  </span>
+                );
               }}
             />
             <Column

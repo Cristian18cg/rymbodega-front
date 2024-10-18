@@ -33,11 +33,10 @@ export const ListaVentasWO = () => {
   const [dates, setDates] = useState(null);
 
   useEffect(() => {
-    if (listaventasWO.length === 0) {
-      ListarDocumentoVenta();
-    }
+    ListarDocumentoVenta();
+
     initFilters();
-  }, [listaventasWO, ListarDocumentoVenta]);
+  }, [ListarDocumentoVenta]);
   useEffect(() => {
     // Llama a la función asincrónica para obtener los datos
     if (filtroFecha?.some((filtro) => filtro.name === "Rango")) {
@@ -131,24 +130,33 @@ export const ListaVentasWO = () => {
   };
 
   const start = (
-    <div className="d-flex justify-content-between">
-      <Button
-        type="button"
-        icon="pi pi-filter-slash"
-        label="Limpiar"
-        outlined
-        className="btn btn-outline-primary color-icon "
-        onClick={clearFilter}
-      />
-      <IconField iconPosition="left">
-        <InputIcon className="pi pi-search" />
-        <InputText
-          className="mx-2"
-          value={globalFilterValue}
-          onChange={onGlobalFilterChange}
-          placeholder="Buscar palabra"
+    <div
+      className="d-flex justify-content-between w-full"
+      style={{ width: "100%" }}
+    >
+      <div className="d-flex justify-content-between">
+        <Button
+          type="button"
+          icon="pi pi-filter-slash"
+          label="Limpiar"
+          outlined
+          className="btn btn-outline-primary color-icon "
+          onClick={clearFilter}
         />
-      </IconField>
+        <IconField iconPosition="left" >
+          <InputIcon className="pi pi-search" />
+          <InputText
+            className=" mt-2"
+            value={globalFilterValue}
+            onChange={onGlobalFilterChange}
+            placeholder="Buscar palabra"
+          />
+        </IconField>
+      </div>
+      <h1 classname="mx-5" style={{ marginLeft:"30px",color: "white" }}>
+        {" "}
+        Lista ventas World Office
+      </h1>
     </div>
   );
   const fechasFil = [
@@ -461,7 +469,11 @@ export const ListaVentasWO = () => {
         </div>
       ) : (
         <div className="card">
-          <DataTable value={items} className="p-datatable-striped">
+          <DataTable
+            header={header}
+            value={items}
+            className="p-datatable-striped"
+          >
             <Column
               style={{ minWidth: "0.5rem" }}
               sortable

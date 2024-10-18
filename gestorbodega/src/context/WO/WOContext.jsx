@@ -451,6 +451,7 @@ const WOProvider = ({ children }) => {
             Authorization: `WO ${tokenWo}`,
           },
         });
+        ListarDocumentoVenta(null, null, true);
         showSuccess("Documento eliminado exitosamente");
       } catch (error) {
         FuncionErrorToken(error);
@@ -679,7 +680,6 @@ const WOProvider = ({ children }) => {
         );
         const porcentajeIVA = impuesto ? parseFloat(impuesto.valor) : 0;
 
-        // Eliminar el IVA si el total del pedido es menor a 150,000
         let precioTotalSinIVA = item.price;
         if (tercero === 108) {
           precioTotalSinIVA = porcentajeIVA
